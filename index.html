@@ -521,29 +521,64 @@ function endGame(){
 }
 
 // ---------- Draw ----------
-function drawBackground(){
-  // sky
-  const skyGrad = ctx.createLinearGradient(0,0,0,GROUND_Y);
-  skyGrad.addColorStop(0, '#61787f');
-  skyGrad.addColorStop(1, '#33454b');
-  ctx.fillStyle = skyGrad;
-  ctx.fillRect(0,0,W,GROUND_Y);
+// City background photo: aligned so the row where its curb meets the road
+// (BG_ROAD_SRC_Y, in source-image pixels) lands exactly on GROUND_Y.
+const bgImg = new Image();
+let bgLoaded = false, bgFailed = false;
+bgImg.onload = () => { bgLoaded = true; };
+bgImg.onerror = () => { bgFailed = true; };
+bgImg.src = 'sprites/background.jpg';
+const BG_ROAD_SRC_Y = 782;
 
-  // distant building silhouettes (far parallax)
-  ctx.fillStyle = 'rgba(20,28,31,0.55)';
-  const farOffset = -(scrollX*0.15) % 260;
-  for (let x = farOffset - 260; x < W+260; x += 260){
-    ctx.fillRect(x+20, 140, 90, GROUND_Y-140);
-    ctx.fillRect(x+130, 170, 70, GROUND_Y-170);
-    ctx.fillRect(x+210, 120, 50, GROUND_Y-120);
+function drawBackground(){
+  if (bgLoaded){
+    const scale = GROUND_Y / BG_ROAD_SRC_Y;
+    const dw = bgImg.naturalWidth * scale;
+    const dh = bgImg.naturalHeight * scale;
+    const dy = GROUND_Y - BG_ROAD_SRC_Y * scale;
+    const parallax = 0.55; // background drifts slower than the foreground for depth
+    const totalScroll = scrollX * parallax;
+    let idx = Math.floor(totalScroll / dw) - 1;
+    const limit = totalScroll + W + dw;
+    while (idx * dw - totalScroll < limit){
+      const dx = idx * dw - totalScroll;
+      ctx.save();
+      if (idx % 2 !== 0){
+        // mirror every other tile — the shared edge matches itself exactly,
+        // so the repeat has no visible seam even though the art isn't tileable.
+        ctx.translate(dx + dw, dy);
+        ctx.scale(-1, 1);
+        ctx.drawImage(bgImg, 0, 0, dw, dh);
+      } else {
+        ctx.drawImage(bgImg, dx, dy, dw, dh);
+      }
+      ctx.restore();
+      idx++;
+    }
+    // slight atmospheric haze so the ground band we draw next sits naturally
+    const haze = ctx.createLinearGradient(0, GROUND_Y-60, 0, GROUND_Y);
+    haze.addColorStop(0, 'rgba(20,26,28,0)');
+    haze.addColorStop(1, 'rgba(20,26,28,0.25)');
+    ctx.fillStyle = haze;
+    ctx.fillRect(0, GROUND_Y-60, W, 60);
+  } else {
+    // fallback while loading, or if the photo fails for any reason
+    const skyGrad = ctx.createLinearGradient(0,0,0,GROUND_Y);
+    skyGrad.addColorStop(0, '#61787f');
+    skyGrad.addColorStop(1, '#33454b');
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0,0,W,GROUND_Y);
+    if (bgFailed){
+      ctx.fillStyle = 'rgba(20,28,31,0.55)';
+      const farOffset = -(scrollX*0.15) % 260;
+      for (let x = farOffset - 260; x < W+260; x += 260){
+        ctx.fillRect(x+20, 140, 90, GROUND_Y-140);
+        ctx.fillRect(x+130, 170, 70, GROUND_Y-170);
+        ctx.fillRect(x+210, 120, 50, GROUND_Y-120);
+      }
+    }
   }
-  // mid warehouse wall with beams (mid parallax)
-  ctx.fillStyle = 'rgba(24,32,35,0.75)';
-  const midOffset = -(scrollX*0.4) % 220;
-  for (let x = midOffset - 220; x < W+220; x += 220){
-    ctx.fillRect(x, 200, 14, GROUND_Y-200);
-    ctx.fillRect(x+180, 190, 10, GROUND_Y-190);
-  }
+
   // ground
   const groundGrad = ctx.createLinearGradient(0,GROUND_Y,0,H);
   groundGrad.addColorStop(0, '#2c3438');

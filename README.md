@@ -17,6 +17,7 @@ On touch devices, on-screen buttons appear automatically.
 ## How it works
 
 - Pure vanilla HTML/CSS/JS, no build step, no dependencies.
+- **Background**: `sprites/background.jpg`, a single (non-tileable) city photo. It's aligned so the sidewalk/curb line in the image lands exactly on the game's ground line, and it's tiled infinitely by mirroring every other repeat — the shared edge always matches itself exactly, so there's no visible seam. The trade-off: on mirrored repeats, the "TALLER" signage reads backwards. It scrolls at 55% of world speed for a parallax depth effect.
 - **One real spritesheet** (`sprites/spritesheet.png`): a uniform grid where every cell is exactly `SHEET.frameW × SHEET.frameH`. Row 0 is the run cycle (24 frames), row 1 is the jump cycle (23 frames). The game never hand-picks a file — it always derives the source rectangle from `(row, frameIndex)`:
   ```js
   function sheetRect(animName, frameIndex){
