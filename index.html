@@ -142,6 +142,62 @@
   button.cta:active{transform:translateY(3px);box-shadow:0 1px 0 #6a501d;}
   .hidden{display:none !important;}
 
+  .lb{
+    width:100%;
+    max-width:360px;
+    margin-top:4px;
+    border:1px solid #2c3a40;
+    border-radius:6px;
+    background:rgba(10,14,16,0.5);
+    overflow:hidden;
+    flex-shrink:0;
+  }
+  .lb-title{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
+    color:var(--amber);
+    background:rgba(232,171,58,0.08);
+    padding:6px 10px;
+    border-bottom:1px solid #2c3a40;
+  }
+  .lb-list{
+    max-height:150px;
+    overflow-y:auto;
+    padding:4px 0;
+  }
+  .lb-row{
+    display:flex;align-items:center;gap:8px;
+    padding:3px 10px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--paper);
+  }
+  .lb-row:nth-child(odd){ background:rgba(255,255,255,0.03); }
+  .lb-rank{ color:var(--paper-dim); width:18px; flex-shrink:0; }
+  .lb-name{ flex:1; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .lb-score{ color:var(--amber); font-weight:700; }
+  .lb-status{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;color:var(--paper-dim);
+    padding:8px 10px;text-align:center;
+  }
+  .lb-submit{
+    display:flex;gap:8px;width:100%;max-width:360px;
+    flex-wrap:wrap;justify-content:center;
+  }
+  .lb-submit input{
+    flex:1;min-width:120px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;letter-spacing:1px;text-transform:uppercase;
+    background:#1c262a;border:1px solid var(--paper-dim);border-radius:5px;
+    color:var(--paper);padding:9px 10px;
+    text-align:center;
+  }
+  .lb-submit input:focus{ outline:none; border-color:var(--amber); }
+  button.cta.small{
+    padding:9px 16px;font-size:12px;flex-shrink:0;
+  }
+
   #touch{
     display:flex;
     gap:10px;
@@ -219,12 +275,24 @@
         <div class="key"><b>↑ / SPACE</b> jump</div>
       </div>
       <button class="cta" id="startBtn">Start Running</button>
+      <div class="lb" id="lbStart">
+        <div class="lb-title">🌍 Global Top 5</div>
+        <div class="lb-list" id="lbStartList"><div class="lb-status">Loading…</div></div>
+      </div>
     </div>
 
     <div class="overlay hidden" id="overOverlay">
       <h2>Wiped <span>Out</span></h2>
       <p id="overText">You made it some distance before the dock got the better of you.</p>
+      <div class="lb-submit" id="lbSubmit">
+        <input type="text" id="lbNameInput" maxlength="12" placeholder="YOUR NAME" autocomplete="off" autocapitalize="characters">
+        <button class="cta small" id="lbSubmitBtn">Submit Score</button>
+      </div>
       <button class="cta" id="restartBtn">Run Again</button>
+      <div class="lb" id="lbOver">
+        <div class="lb-title">🌍 Global Top 10</div>
+        <div class="lb-list" id="lbOverList"><div class="lb-status">Loading…</div></div>
+      </div>
     </div>
   </div>
 
@@ -265,10 +333,78 @@ const overOverlay = document.getElementById('overOverlay');
 const overText = document.getElementById('overText');
 const startBtn = document.getElementById('startBtn');
 const restartBtn = document.getElementById('restartBtn');
+const lbStartList = document.getElementById('lbStartList');
+const lbOverList = document.getElementById('lbOverList');
+const lbNameInput = document.getElementById('lbNameInput');
+const lbSubmitBtn = document.getElementById('lbSubmitBtn');
 
 let BEST = 0;
 try { BEST = parseInt(localStorage.getItem('ragnarBest') || '0', 10) || 0; } catch(e){ BEST = 0; }
 bestVal.textContent = BEST;
+
+try {
+  const savedName = localStorage.getItem('ragnarName');
+  if (savedName) lbNameInput.value = savedName;
+} catch(e){}
+
+// ---------- Global leaderboard (Supabase) ----------
+// Public anon key — safe to expose client-side; the table's Row Level
+// Security policies (insert/select only, with a checked score range and
+// name length) are what actually keep this safe, not key secrecy.
+const SUPABASE_URL = 'https://czwpovbmwstjlgemzxsp.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_iewfgpWVKtjY57SFKrD9hQ_GYRb2AKo';
+
+function lbHeaders(extra){
+  return Object.assign({
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: 'Bearer ' + SUPABASE_ANON_KEY,
+  }, extra || {});
+}
+
+async function fetchLeaderboard(limit){
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/scores?select=player_name,score&order=score.desc&limit=' + limit,
+    { headers: lbHeaders() }
+  );
+  if (!res.ok) throw new Error('leaderboard fetch failed: ' + res.status);
+  return res.json();
+}
+
+async function submitScoreToLeaderboard(name, score){
+  const res = await fetch(SUPABASE_URL + '/rest/v1/scores', {
+    method: 'POST',
+    headers: lbHeaders({ 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }),
+    body: JSON.stringify({ player_name: name, score: score }),
+  });
+  if (!res.ok) throw new Error('leaderboard submit failed: ' + res.status);
+}
+
+function renderLeaderboard(container, rows){
+  if (!rows || rows.length === 0){
+    container.innerHTML = '<div class="lb-status">No scores yet — be the first.</div>';
+    return;
+  }
+  container.innerHTML = rows.map((r, i) => (
+    '<div class="lb-row">' +
+      '<span class="lb-rank">' + (i+1) + '</span>' +
+      '<span class="lb-name">' + escapeHtml(r.player_name || 'ANON') + '</span>' +
+      '<span class="lb-score">' + r.score + '</span>' +
+    '</div>'
+  )).join('');
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function loadLeaderboardInto(container, limit){
+  container.innerHTML = '<div class="lb-status">Loading…</div>';
+  fetchLeaderboard(limit)
+    .then(rows => renderLeaderboard(container, rows))
+    .catch(() => { container.innerHTML = '<div class="lb-status">Couldn\'t reach the leaderboard.</div>'; });
+}
+
+let scoreSubmitted = false;
 
 // ---------- Sprite sheet ----------
 // One real spritesheet: a uniform grid where every cell is exactly
@@ -323,10 +459,14 @@ function setKey(code, val){
   }
 }
 window.addEventListener('keydown', e => {
+  if (document.activeElement === lbNameInput) return;
   if (['ArrowLeft','ArrowRight','ArrowUp','Space','KeyA','KeyD','KeyW'].includes(e.code)) e.preventDefault();
   setKey(e.code, true);
 });
-window.addEventListener('keyup', e => setKey(e.code, false));
+window.addEventListener('keyup', e => {
+  if (document.activeElement === lbNameInput) return;
+  setKey(e.code, false);
+});
 
 function bindTouch(id, onDown, onUp){
   const el = document.getElementById(id);
@@ -518,6 +658,10 @@ function endGame(){
     overText.textContent = 'You made it ' + score + ' meters before the dock got the better of you.';
   }
   overOverlay.classList.remove('hidden');
+  scoreSubmitted = false;
+  lbSubmitBtn.disabled = false;
+  lbSubmitBtn.textContent = 'Submit Score';
+  loadLeaderboardInto(lbOverList, 10);
 }
 
 // ---------- Draw ----------
@@ -822,9 +966,40 @@ function startGame(){
 }
 startBtn.addEventListener('click', startGame);
 restartBtn.addEventListener('click', startGame);
+loadLeaderboardInto(lbStartList, 5);
+
+async function handleSubmitScore(){
+  if (scoreSubmitted) return;
+  let name = (lbNameInput.value || '').trim().toUpperCase();
+  if (!name) name = 'ANON';
+  name = name.slice(0, 12);
+  lbNameInput.value = name;
+  try { localStorage.setItem('ragnarName', name); } catch(e){}
+
+  scoreSubmitted = true;
+  lbSubmitBtn.disabled = true;
+  lbSubmitBtn.textContent = 'Submitting…';
+  try {
+    await submitScoreToLeaderboard(name, score);
+    lbSubmitBtn.textContent = 'Submitted ✓';
+    loadLeaderboardInto(lbOverList, 10);
+    loadLeaderboardInto(lbStartList, 5);
+  } catch(e){
+    lbSubmitBtn.textContent = 'Couldn\'t submit — retry';
+    scoreSubmitted = false;
+    lbSubmitBtn.disabled = false;
+  }
+}
+lbSubmitBtn.addEventListener('click', handleSubmitScore);
+lbNameInput.addEventListener('keydown', e => {
+  e.stopPropagation();
+  if (e.key === 'Enter') handleSubmitScore();
+});
+lbNameInput.addEventListener('keyup', e => e.stopPropagation());
 
 // allow starting/jumping with a keypress from the ready screen too
 window.addEventListener('keydown', e => {
+  if (document.activeElement === lbNameInput) return; // typing a name, don't hijack keys
   if (state !== STATE.PLAYING && (e.code==='Space'||e.code==='ArrowUp'||e.code==='Enter')){
     startGame();
   }
