@@ -16,10 +16,15 @@ On touch devices, on-screen buttons appear automatically.
 
 ## How it works
 
-- Pure vanilla HTML/CSS/JS, no build step, no dependencies — everything (including the sprite frames) is inlined into `index.html` as base64 data URIs.
+- Pure vanilla HTML/CSS/JS, no build step, no dependencies.
+- Sprite frames live as individual PNG files in `/sprites` (`frame_00.png`–`frame_10.png`), each with a transparent background — edit them directly in Photoshop/GIMP/Photopea if you need to touch up any artifacts.
 - Canvas-based side-scroller: hold `→` to build speed, `←` to back off, and time jumps to clear procedurally-spaced obstacles.
 - 3 lives, distance-based scoring, best score saved via `localStorage`.
 - If the sprite art ever fails to load for any reason, a simple vector runner is drawn instead so the game never breaks.
+
+## Editing the sprites
+
+Each frame in `/sprites` is 126×117px (native resolution extracted from the source spritesheet), RGBA with transparency already cut out. After editing, just overwrite the file in place — the game reloads it on next refresh, no code changes needed as long as the filenames (`frame_00.png` … `frame_10.png`) and canvas size stay the same.
 
 ## Credits
 
