@@ -270,40 +270,47 @@ let BEST = 0;
 try { BEST = parseInt(localStorage.getItem('ragnarBest') || '0', 10) || 0; } catch(e){ BEST = 0; }
 bestVal.textContent = BEST;
 
-// ---------- Load sprite frames ----------
-// Loaded from external files in /sprites so the source art can be opened
-// and cleaned up directly in an image editor (Photoshop, GIMP, Photopea, etc).
-const FRAME_COUNT = 11;
-const frameImages = [];
-for (let i = 0; i < FRAME_COUNT; i++){
-  const img = new Image();
-  img.src = 'sprites/frame_' + String(i).padStart(2,'0') + '.png';
-  frameImages.push(img);
+// ---------- Sprite sheet ----------
+// One real spritesheet: a uniform grid where every cell is exactly
+// SHEET.frameW x SHEET.frameH. Switching animation = switching row +
+// frame-count range; the pixel offset is always derived, never hand-authored.
+const SHEET = {
+  src: 'sprites/spritesheet.png',
+  frameW: 182,
+  frameH: 193,
+  anims: {
+    run:  { row: 0, frameCount: 24 },
+    jump: { row: 1, frameCount: 23 },
+  }
+};
+
+// Given an animation name + frame index, compute the source rect on the sheet.
+// This is the one place that turns (row, frameIndex) into (sx, sy, sw, sh).
+function sheetRect(animName, frameIndex){
+  const a = SHEET.anims[animName];
+  const idx = ((frameIndex % a.frameCount) + a.frameCount) % a.frameCount;
+  return {
+    sx: idx * SHEET.frameW,
+    sy: a.row * SHEET.frameH,
+    sw: SHEET.frameW,
+    sh: SHEET.frameH,
+  };
 }
-let framesLoaded = 0;
-let framesFailed = 0;
+
+const sheetImg = new Image();
 let allLoaded = false;
 let useFallbackArt = false;
-frameImages.forEach(img => {
-  img.onload = () => { framesLoaded++; checkLoadDone(); };
-  img.onerror = () => { framesFailed++; checkLoadDone(); };
-});
-function checkLoadDone(){
-  if (framesLoaded + framesFailed >= FRAME_COUNT){
-    allLoaded = framesLoaded > 0; // proceed even with partial art
-    if (framesFailed > 0) useFallbackArt = (framesLoaded === 0);
-  }
-}
+sheetImg.onload = () => { allLoaded = true; };
+sheetImg.onerror = () => { useFallbackArt = true; allLoaded = true; };
+sheetImg.src = SHEET.src;
 // Safety net: never let a stalled/blocked image load freeze the game.
-// If sprites haven't resolved shortly, switch to the built-in vector runner.
 setTimeout(() => {
-  if (!allLoaded){
-    useFallbackArt = true;
-    allLoaded = true;
-  }
+  if (!allLoaded){ useFallbackArt = true; allLoaded = true; }
 }, 2500);
-// natural aspect ratio (all frames share ~ same ratio)
-const FRAME_ASPECT = 126/117;
+// natural aspect ratio, used only by the vector fallback runner
+const FRAME_ASPECT = SHEET.frameW / SHEET.frameH;
+
+
 
 // ---------- Input ----------
 const keys = { left:false, right:false, up:false };
@@ -347,13 +354,19 @@ const player = {
   vy: 0,
   facing: 1,     // 1 = right, -1 = left
   onGround: true,
-  animTimer: 0,
-  animFrame: 0,
+  animPhase: 0,     // continuous run-cycle phase (frame units)
+  jumpElapsed: 0,   // time airborne, for mapping the jump animation to flight progress
+  curAnim: 'run',
+  curFrame: 0,
   invuln: 0,
 };
 
 const GRAVITY = 0.62;
 const JUMP_VELOCITY = -13.6;
+// Total airborne duration (in dt units, ~60fps frames) for a symmetric jump
+// that launches at JUMP_VELOCITY and lands back at y=0. Used to scrub through
+// the jump animation's frames in sync with the actual flight, not a fixed fps.
+const JUMP_TOTAL_FRAMES = 2 * Math.abs(JUMP_VELOCITY) / GRAVITY;
 
 let scrollX = 0;
 let baseSpeed = 4.2;
@@ -374,6 +387,7 @@ function resetGame(){
   lives = 3;
   score = 0;
   player.y = 0; player.vy = 0; player.onGround = true; player.invuln = 0; player.facing = 1;
+  player.animPhase = 0; player.jumpElapsed = 0; player.curAnim = 'run'; player.curFrame = 0;
   obstacles = [];
   lastObstacleX = 900;
   updateLivesUI();
@@ -424,6 +438,7 @@ function update(dt){
   if (jumpQueued && player.onGround){
     player.vy = JUMP_VELOCITY;
     player.onGround = false;
+    player.jumpElapsed = 0;
   }
   jumpQueued = false;
 
@@ -431,15 +446,22 @@ function update(dt){
   player.vy += GRAVITY * dt;
   player.y += player.vy * dt;
   if (player.y >= 0){ player.y = 0; player.vy = 0; player.onGround = true; }
+  if (!player.onGround) player.jumpElapsed += dt;
 
-  // animation
+  // animation: pick (animation, frameIndex) — switching animation is just
+  // switching which row/range we read from, per SHEET.anims.
   if (player.onGround){
     const cycleSpeed = Math.max(0.35, curSpeed / 4.2);
-    player.animTimer += dt * cycleSpeed;
-    if (player.animTimer >= 2.2){
-      player.animTimer = 0;
-      player.animFrame = (player.animFrame + 1) % FRAME_COUNT;
-    }
+    player.animPhase += dt * cycleSpeed * 0.85;
+    player.curAnim = 'run';
+    player.curFrame = Math.floor(player.animPhase) % SHEET.anims.run.frameCount;
+  } else {
+    const progress = Math.min(1, player.jumpElapsed / JUMP_TOTAL_FRAMES);
+    player.curAnim = 'jump';
+    player.curFrame = Math.min(
+      SHEET.anims.jump.frameCount - 1,
+      Math.floor(progress * (SHEET.anims.jump.frameCount - 1))
+    );
   }
 
   if (player.invuln > 0) player.invuln -= dt;
@@ -676,6 +698,7 @@ function drawFallbackRunner(feetY, topY, drawH, drawW, phase, facing){
 
 function drawPlayer(){
   const pDrawH = 150;
+  const pDrawW = pDrawH / FRAME_ASPECT;
   const feetY = GROUND_Y + player.y;
   const topY = feetY - pDrawH;
 
@@ -692,17 +715,15 @@ function drawPlayer(){
   }
 
   if (useFallbackArt){
-    const phase = player.onGround ? player.animTimer*3 + player.animFrame : Math.PI/2;
-    drawFallbackRunner(feetY, topY, pDrawH, pDrawH/FRAME_ASPECT, phase, player.facing);
+    const phase = player.onGround ? player.animPhase*2 : Math.PI/2;
+    drawFallbackRunner(feetY, topY, pDrawH, pDrawW, phase, player.facing);
+  } else if (sheetImg.complete && sheetImg.naturalWidth > 0){
+    // Derive the source rectangle purely from (animation, frameIndex) —
+    // this is the whole "spritesheet" trick: one image, computed offsets.
+    const { sx, sy, sw, sh } = sheetRect(player.curAnim, player.curFrame);
+    ctx.drawImage(sheetImg, sx, sy, sw, sh, -pDrawW/2, topY, pDrawW, pDrawH);
   } else {
-    const idx = player.onGround ? player.animFrame : Math.min(5, FRAME_COUNT-1);
-    const img = frameImages[idx];
-    if (img && img.complete && img.naturalWidth > 0){
-      const pDrawW = pDrawH * (img.naturalWidth / img.naturalHeight || FRAME_ASPECT);
-      ctx.drawImage(img, -pDrawW/2, topY, pDrawW, pDrawH);
-    } else {
-      drawFallbackRunner(feetY, topY, pDrawH, pDrawH/FRAME_ASPECT, player.animTimer*3, player.facing);
-    }
+    drawFallbackRunner(feetY, topY, pDrawH, pDrawW, player.animPhase*2, player.facing);
   }
   ctx.restore();
 

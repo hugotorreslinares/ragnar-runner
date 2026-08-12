@@ -17,14 +17,22 @@ On touch devices, on-screen buttons appear automatically.
 ## How it works
 
 - Pure vanilla HTML/CSS/JS, no build step, no dependencies.
-- Sprite frames live as individual PNG files in `/sprites` (`frame_00.png`–`frame_10.png`), each with a transparent background — edit them directly in Photoshop/GIMP/Photopea if you need to touch up any artifacts.
-- Canvas-based side-scroller: hold `→` to build speed, `←` to back off, and time jumps to clear procedurally-spaced obstacles.
+- **One real spritesheet** (`sprites/spritesheet.png`): a uniform grid where every cell is exactly `SHEET.frameW × SHEET.frameH`. Row 0 is the run cycle (24 frames), row 1 is the jump cycle (23 frames). The game never hand-picks a file — it always derives the source rectangle from `(row, frameIndex)`:
+  ```js
+  function sheetRect(animName, frameIndex){
+    const a = SHEET.anims[animName];
+    const idx = frameIndex % a.frameCount;
+    return { sx: idx * SHEET.frameW, sy: a.row * SHEET.frameH, sw: SHEET.frameW, sh: SHEET.frameH };
+  }
+  ```
+  Drawing a frame is then a single `ctx.drawImage(sheetImg, sx, sy, sw, sh, dx, dy, dw, dh)` call. Adding a new animation later is just adding a new row + an entry in `SHEET.anims` — no new files, no per-frame code.
+- The **run** animation loops continuously at a rate tied to current speed. The **jump** animation is scrubbed by actual flight progress (`jumpElapsed / totalJumpFrames`), so the pose you see is always in sync with how high/long the jump physics say you should be in the air — not a fixed frame rate.
 - 3 lives, distance-based scoring, best score saved via `localStorage`.
-- If the sprite art ever fails to load for any reason, a simple vector runner is drawn instead so the game never breaks.
+- If the spritesheet ever fails to load, a simple vector runner is drawn instead so the game never breaks.
 
 ## Editing the sprites
 
-Each frame in `/sprites` is 126×117px (native resolution extracted from the source spritesheet), RGBA with transparency already cut out. After editing, just overwrite the file in place — the game reloads it on next refresh, no code changes needed as long as the filenames (`frame_00.png` … `frame_10.png`) and canvas size stay the same.
+`sprites/spritesheet.png` is a single RGBA PNG, grid-packed, transparent background, bottom-center anchored per cell (so feet line up consistently frame to frame). Open it in Photoshop/GIMP/Photopea to clean up individual cells — as long as the grid geometry doesn't shift, no code changes are needed. If you resize the grid, update `SHEET.frameW` / `SHEET.frameH` (and `frameCount` per row) in `index.html` to match.
 
 ## Credits
 
