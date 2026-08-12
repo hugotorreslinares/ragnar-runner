@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
-<title>RAGNAR RUNNER — Taller de la Mancha</title>
+<title>RAGNAR RUNNER</title>
 <style>
   :root{
     --sky-hi:#57707a;
@@ -240,7 +240,7 @@
     <div style="display:flex;align-items:center;gap:10px;">
       <div class="rivet"></div>
       <div id="titleblock">
-        <div class="eyebrow">Taller de la Mancha — Field Test</div>
+        <div class="eyebrow">Field Test</div>
         <h1>RAGNAR <span>RUNNER</span></h1>
       </div>
     </div>
@@ -267,7 +267,7 @@
     <canvas id="game" width="800" height="480"></canvas>
 
     <div class="overlay" id="startOverlay">
-      <h2>El Coleccionista <span>Corre</span></h2>
+      <h2>Ragnar <span>runs</span></h2>
       <p>Run the loading-dock gauntlet. Speed up, slow down, and time your jumps to clear the crates and barrels before they clip you. Three hits and you're out.</p>
       <div class="keys">
         <div class="key"><b>←</b> slow / retreat</div>
@@ -304,7 +304,7 @@
     <div class="tbtn jump" id="btnJump">JUMP</div>
   </div>
 
-  <div id="footer-note">Character art: Taller de la Mancha · Arrow keys or on-screen controls · Space also jumps</div>
+  <div id="footer-note">Character art: Hugo Torres · Arrow keys or on-screen controls · Space also jumps</div>
 </div>
 
 <script>
@@ -501,7 +501,7 @@ const player = {
   invuln: 0,
 };
 
-const GRAVITY = 0.62;
+const GRAVITY = 0.82;
 const JUMP_VELOCITY = -13.6;
 // Total airborne duration (in dt units, ~60fps frames) for a symmetric jump
 // that launches at JUMP_VELOCITY and lands back at y=0. Used to scrub through
@@ -521,7 +521,7 @@ let lastObstacleX = 900; // world x of the most recently spawned obstacle
 
 function resetGame(){
   scrollX = 0;
-  baseSpeed = 4.2;
+  baseSpeed = 3.2;
   curSpeed = 0;
   elapsed = 0;
   lives = 3;
