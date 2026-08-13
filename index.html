@@ -848,7 +848,11 @@ function endGame(){
 
 // ---------- Draw ----------
 // City background photo: aligned so the row where its curb meets the road
-// (BG_ROAD_SRC_Y, in source-image pixels) lands exactly on GROUND_Y.
+// (roadSrcY, in source-image pixels) lands exactly on GROUND_Y. Past
+// BG_SWITCH_SCORE the scenery swaps to the Bogotá skyline for the rest of
+// the run — both photos use the same mirrored infinite-tiling trick.
+const BG_SWITCH_SCORE = 4000;
+
 const bgImg = new Image();
 let bgLoaded = false, bgFailed = false;
 bgImg.onload = () => { bgLoaded = true; };
@@ -856,12 +860,25 @@ bgImg.onerror = () => { bgFailed = true; };
 bgImg.src = 'sprites/background.jpg';
 const BG_ROAD_SRC_Y = 782;
 
+const bgImg2 = new Image();
+let bg2Loaded = false, bg2Failed = false;
+bgImg2.onload = () => { bg2Loaded = true; };
+bgImg2.onerror = () => { bg2Failed = true; };
+bgImg2.src = 'sprites/background-bogota.png';
+const BG_ROAD_SRC_Y_2 = 795;
+
 function drawBackground(){
-  if (bgLoaded){
-    const scale = GROUND_Y / BG_ROAD_SRC_Y;
-    const dw = bgImg.naturalWidth * scale;
-    const dh = bgImg.naturalHeight * scale;
-    const dy = GROUND_Y - BG_ROAD_SRC_Y * scale;
+  const useBogota = score >= BG_SWITCH_SCORE;
+  const img = useBogota ? bgImg2 : bgImg;
+  const loaded = useBogota ? bg2Loaded : bgLoaded;
+  const failed = useBogota ? bg2Failed : bgFailed;
+  const roadSrcY = useBogota ? BG_ROAD_SRC_Y_2 : BG_ROAD_SRC_Y;
+
+  if (loaded){
+    const scale = GROUND_Y / roadSrcY;
+    const dw = img.naturalWidth * scale;
+    const dh = img.naturalHeight * scale;
+    const dy = GROUND_Y - roadSrcY * scale;
     const parallax = 0.55; // background drifts slower than the foreground for depth
     const totalScroll = scrollX * parallax;
     let idx = Math.floor(totalScroll / dw) - 1;
@@ -874,9 +891,9 @@ function drawBackground(){
         // so the repeat has no visible seam even though the art isn't tileable.
         ctx.translate(dx + dw, dy);
         ctx.scale(-1, 1);
-        ctx.drawImage(bgImg, 0, 0, dw, dh);
+        ctx.drawImage(img, 0, 0, dw, dh);
       } else {
-        ctx.drawImage(bgImg, dx, dy, dw, dh);
+        ctx.drawImage(img, dx, dy, dw, dh);
       }
       ctx.restore();
       idx++;
@@ -894,7 +911,7 @@ function drawBackground(){
     skyGrad.addColorStop(1, '#33454b');
     ctx.fillStyle = skyGrad;
     ctx.fillRect(0,0,W,GROUND_Y);
-    if (bgFailed){
+    if (failed){
       ctx.fillStyle = 'rgba(20,28,31,0.55)';
       const farOffset = -(scrollX*0.15) % 260;
       for (let x = farOffset - 260; x < W+260; x += 260){
