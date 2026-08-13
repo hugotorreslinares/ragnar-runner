@@ -285,9 +285,7 @@
       </div>
       <div class="hudstat">
         <label>Lives</label>
-        <div id="lives">
-          <div class="life"></div><div class="life"></div><div class="life"></div>
-        </div>
+        <div id="lives"></div>
       </div>
       <div class="hudstat">
         <label>Stars</label>
@@ -305,9 +303,7 @@
     <canvas id="game" width="800" height="480"></canvas>
     <div id="stageHud">
       <div class="grp">
-        <div id="livesMini">
-          <div class="life"></div><div class="life"></div><div class="life"></div>
-        </div>
+        <div id="livesMini"></div>
       </div>
       <div class="grp">
         <span id="starsMini">★ 0/10</span>
@@ -415,9 +411,9 @@ try {
 } catch(e){}
 
 // ---------- Global leaderboard (Supabase) ----------
-// Public anon key — safe to expose client-side; the table's Row Level
-// Security policies (insert/select only, with a checked score range and
-// name length) are what actually keep this safe, not key secrecy.
+// Public anon key — safe to expose client-side; the table's own CHECK
+// constraints (score range, name length) are what actually bound the data,
+// not key secrecy or the RLS insert policy (which allows any row shape).
 const SUPABASE_URL = 'https://czwpovbmwstjlgemzxsp.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_iewfgpWVKtjY57SFKrD9hQ_GYRb2AKo';
 
@@ -451,13 +447,14 @@ function renderLeaderboard(container, rows){
     container.innerHTML = '<div class="lb-status">No scores yet — be the first.</div>';
     return;
   }
-  container.innerHTML = rows.map((r, i) => (
-    '<div class="lb-row">' +
+  container.innerHTML = rows.map((r, i) => {
+    const safeScore = Number.isFinite(Number(r.score)) ? Number(r.score) : 0;
+    return '<div class="lb-row">' +
       '<span class="lb-rank">' + (i+1) + '</span>' +
       '<span class="lb-name">' + escapeHtml(r.player_name || 'ANON') + '</span>' +
-      '<span class="lb-score">' + r.score + '</span>' +
-    '</div>'
-  )).join('');
+      '<span class="lb-score">' + safeScore + '</span>' +
+    '</div>';
+  }).join('');
 }
 
 function escapeHtml(s){
@@ -568,7 +565,7 @@ const player = {
   invuln: 0,
 };
 
-const BASE_SPEED_CAP = 10.0; // top of the difficulty ramp; running speed can't exceed this on its own
+const BASE_SPEED_CAP = 11.0; // top of the difficulty ramp; running speed can't exceed this on its own
 const GRAVITY = 0.80;
 const JUMP_VELOCITY = -13.6;
 // Total airborne duration (in dt units, ~60fps frames) for a symmetric jump
@@ -577,10 +574,15 @@ const JUMP_VELOCITY = -13.6;
 const JUMP_TOTAL_FRAMES = 2 * Math.abs(JUMP_VELOCITY) / GRAVITY;
 
 let scrollX = 0;
-let baseSpeed = 4.2;
+let baseSpeed = 0; // real starting value is set by resetGame()
 let curSpeed = 0;
 let elapsed = 0;
-const MAX_LIVES = 3;
+const MAX_LIVES = 5;
+// Build the heart icons from MAX_LIVES instead of hardcoding a count in the
+// HTML — keeps the HUD in sync if MAX_LIVES ever changes again.
+[livesWrap, livesMiniWrap].forEach(wrap => {
+  wrap.innerHTML = '<div class="life"></div>'.repeat(MAX_LIVES);
+});
 let lives = 3;
 let score = 0;
 let shakeT = 0;
@@ -588,6 +590,7 @@ let hitFlash = 0; // 1 = just hit an obstacle, fades to 0
 
 let obstacles = [];
 let lastObstacleX = 900; // world x of the most recently spawned obstacle
+let debris = []; // obstacles knocked flying on hit — pure screen-space physics, decoupled from world scroll
 
 const STARS_PER_LIFE = 10;
 let stars = [];
@@ -607,6 +610,7 @@ function resetGame(){
   player.animPhase = 0; player.jumpElapsed = 0; player.curAnim = 'run'; player.curFrame = 0;
   obstacles = [];
   lastObstacleX = 900;
+  debris = [];
   stars = [];
   lastStarX = 1300;
   starsCollected = 0;
@@ -728,8 +732,21 @@ function update(dt){
     );
   }
 
-  if (shakeT > 0) shakeT -= dt;
+  // dt is in ~60fps-frame units (dt≈1 per frame, ≈60 per real second), so
+  // any timer meant to represent real seconds must decrement by dt/60 —
+  // decrementing by raw dt (as shakeT/invuln/starPop/debris used to) drains
+  // a "1.6 second" timer in about 2 frames.
+  if (shakeT > 0) shakeT -= dt/60;
   if (hitFlash > 0) hitFlash = Math.max(0, hitFlash - dt*0.08);
+
+  for (const d of debris){
+    d.vy += GRAVITY * dt;
+    d.x += d.vx * dt;
+    d.y += d.vy * dt;
+    d.rot += d.rotV * dt;
+    d.t += dt/60;
+  }
+  debris = debris.filter(d => d.t < 1 && d.y < H + 100);
 
   // spawn obstacles ahead
   while (lastObstacleX - scrollX < W + 400){
@@ -744,8 +761,8 @@ function update(dt){
   }
   stars = stars.filter(s => !s.caught && (s.worldX - scrollX) > -80);
 
-  if (player.invuln > 0) player.invuln -= dt;
-  if (starPop > 0) starPop -= dt;
+  if (player.invuln > 0) player.invuln -= dt/60;
+  if (starPop > 0) starPop -= dt/60;
   starPopups.forEach(p => { p.t -= dt*0.02; p.y -= dt*0.6; });
   starPopups = starPopups.filter(p => p.t > 0);
 
@@ -767,9 +784,11 @@ function update(dt){
     const overlap = pLeft < oRight && pRight > oLeft && pTop < oBot && pBot > oTop;
     if (overlap && player.invuln <= 0 && !o.hit){
       o.hit = true; // each obstacle can only cost one life, even if the player
-      hitPlayer();   // lingers on top of it while speed is ramping back up
+      launchDebris(o, ox);  // send it flying — makes the hit unmistakable
+      hitPlayer();          // lingers on top of it while speed is ramping back up
     }
   }
+  obstacles = obstacles.filter(o => !o.hit);
 
   // star collection: only reachable mid-jump, by design.
   // Since the jump always launches at the same fixed velocity, one jump
@@ -817,6 +836,22 @@ function collectStar(s){
   updateStarsUI();
 }
 
+// Sends a hit obstacle flying — screen-space physics, independent of world
+// scroll, so it reads clearly as "that thing got launched" instead of just
+// vanishing. Kicked backward/up, away from the player's facing direction.
+function launchDebris(o, ox){
+  const away = -player.facing || 1;
+  debris.push({
+    type: o.type, w: o.w, h: o.h,
+    x: ox, y: GROUND_Y - o.h/2,
+    vx: away * (3 + Math.random()*2.5),
+    vy: -(9 + Math.random()*4),
+    rot: 0,
+    rotV: away * (0.25 + Math.random()*0.2),
+    t: 0,
+  });
+}
+
 function hitPlayer(){
   lives -= 1;
   player.invuln = 1.6;
@@ -831,6 +866,8 @@ function hitPlayer(){
 
 function endGame(){
   state = STATE.OVER;
+  debris = [];
+  starPopups = [];
   if (score > BEST){
     BEST = score;
     try { localStorage.setItem('ragnarBest', String(BEST)); } catch(e){}
