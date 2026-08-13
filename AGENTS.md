@@ -4,33 +4,36 @@ Guidance for AI coding agents (Claude, Copilot, Codex, etc.) working in this rep
 
 ## Project shape
 
-- Single-file game: all HTML/CSS/JS lives in [index.html](index.html). No build step, no bundler, no package.json, no dependencies.
-- Assets: `sprites/spritesheet.png` (run + jump grid), `sprites/background.jpg` (city photo).
-- No test suite. Verify changes by opening `index.html` in a browser (or `python3 -m http.server` + navigate) and playing.
+- Vanilla HTML/CSS/JS split into ES modules. No build step, no bundler, no package.json, no npm dependencies. See [README.md](README.md#project-layout) for the file-by-file breakdown.
+- Assets: `sprites/spritesheet.png` (run + jump grid), `sprites/background.jpg` (city photo), `sprites/background-bogota.png` (second background, past a distance threshold).
+- No test suite. Verify changes by running `python3 -m http.server` from the repo root and opening the served URL — **ES modules do not load over `file://`**, don't tell the user to just double-click `index.html`.
 
 ## Ground rules
 
-- Keep it a single-file, zero-build vanilla JS app unless the user explicitly asks to add tooling. Don't introduce a framework, bundler, or npm dependency.
-- Don't split `index.html` into multiple files unless asked.
+- Keep it zero-build vanilla JS/ES-modules unless the user explicitly asks to add tooling. Don't introduce a framework, bundler, or npm dependency.
+- Respect the module boundaries in `js/` — put changes in the file that already owns that concern (see README's table) rather than reaching into another module's internals or duplicating logic across files. If a change doesn't fit any existing module, ask before inventing a new one.
+- `state.js`'s `G` object is the single source of mutable per-run game data. Mutate its properties (`G.foo = ...`) from any module that imports it; don't create parallel state elsewhere.
 - Preserve the existing architecture documented in [DESIGN.md](DESIGN.md) — read it before making structural changes (sprite system, animation timing, obstacle spawning, background tiling).
-- Sprite/animation changes must go through `SHEET.anims` (row + frameCount) and `sheetRect()`. Never hand-pick per-frame files or hardcode pixel offsets outside that function.
-- If you resize the spritesheet grid, update `SHEET.frameW` / `SHEET.frameH` / `frameCount` together — they must match the actual PNG.
-- The vector fallback runner (`drawFallbackRunner`) must keep working if `sprites/spritesheet.png` fails to load — don't remove the `useFallbackArt` path.
-- Game must never hard-crash silently: the global `window.addEventListener('error', ...)` banner is intentional; don't remove it.
+- Sprite/animation changes must go through `SHEET.anims` (row + frameCount, in `js/config.js`) and `sheetRect()` (`js/assets.js`). Never hand-pick per-frame files or hardcode pixel offsets outside that function.
+- If you resize the spritesheet grid, update `SHEET.frameW` / `SHEET.frameH` / `frameCount` together in `js/config.js` — they must match the actual PNG.
+- The vector fallback runner (`drawFallbackRunner` in `js/render.js`) must keep working if `sprites/spritesheet.png` fails to load — don't remove the `useFallbackArt` path.
+- Game must never hard-crash silently: the inline `window.addEventListener('error', ...)` banner in `index.html` is intentional (kept as a classic script, not a module, so it registers before any module load can fail) — don't remove it.
+- Timers meant to represent real seconds (invulnerability windows, shake, popup fades) must decrement by `dt/60`, not raw `dt` — `dt` is in ~60fps-frame units (~60 per real second), so decrementing by raw `dt` drains a "1.6 second" timer in about 2 frames. See the comment in `js/game.js`'s `update()`.
 
 ## Leaderboard / Supabase
 
-- The Supabase URL and anon/publishable key in `index.html` are meant to be public (client-side, RLS-protected) — not a leaked secret. Don't "fix" this by hiding them.
-- Do not weaken or bypass Supabase Row Level Security assumptions; treat the `scores` table as insert+select only, with score/name constraints enforced server-side.
-- Never add other secret keys (service role keys, etc.) to this client-side file.
+- The Supabase URL and anon/publishable key in `js/leaderboard.js` are meant to be public (client-side) — not a leaked secret. Don't "fix" this by hiding them.
+- Data integrity comes from the `scores` table's own CHECK constraints (score range, name length), not from the RLS insert policy (which permits any row shape) or key secrecy. Don't rely on RLS alone if adding new submitted fields — add a matching CHECK constraint.
+- Never add other secret keys (service role keys, etc.) to this client-side code.
+- Always escape/coerce user- or API-supplied values before inserting them into `innerHTML` (see `escapeHtml` and the numeric coercion on `score` in `renderLeaderboard`).
 
 ## Style
 
-- Match existing code style: IIFE-wrapped vanilla JS, `const`/`let`, no semicolem-less style — follow what's already there.
-- CSS uses custom properties in `:root` for the palette — reuse `--amber`, `--paper`, `--ink`, etc. rather than introducing new hardcoded colors.
-- Keep comments minimal and only where they explain non-obvious "why" (see existing comments as the bar).
+- Match existing code style: `const`/`let`, no semicolon-less style, comments only where they explain non-obvious "why" (see existing comments as the bar).
+- CSS uses custom properties in `:root` (`css/style.css`) for the palette — reuse `--amber`, `--paper`, `--ink`, etc. rather than introducing new hardcoded colors.
 
 ## After changes
 
-- Manually test: start screen loads, arrow keys/space work, jump animation syncs, collision/lives work, game-over + leaderboard submit flow works, touch buttons appear on mobile widths.
+- Serve via `python3 -m http.server` and manually test: start screen loads, arrow keys/space work, jump animation syncs, collision/lives work, star collection + life bonus, pause (Escape + button), game-over + leaderboard submit flow works, touch buttons appear on mobile widths.
 - If editing `sprites/spritesheet.png`, verify grid geometry didn't shift (feet still bottom-anchored per cell) before assuming no code change is needed.
+- Check the browser console for module load/import errors after any change to `js/` file structure or import paths.
