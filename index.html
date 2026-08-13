@@ -118,6 +118,18 @@
   }
   #stageHud #speedMini.maxed{color:var(--danger);}
 
+  #pauseBtn{
+    position:absolute;right:10px;top:14px;z-index:6;
+    width:34px;height:34px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;color:var(--paper);
+    background:rgba(16,22,24,0.55);
+    border:1px solid rgba(232,171,58,0.35);
+    border-radius:5px;
+    cursor:pointer;
+  }
+  #pauseBtn:active{transform:translateY(1px);}
+
   .overlay{
     position:absolute;inset:0;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -329,10 +341,18 @@
       </div>
       <button class="cta" id="restartBtn">Run Again</button>
       <div class="lb" id="lbOver">
-        <div class="lb-title">🌍 Global Top 10</div>
+        <div class="lb-title">🌍 Global Top 20</div>
         <div class="lb-list" id="lbOverList"><div class="lb-status">Loading…</div></div>
       </div>
     </div>
+
+    <div class="overlay hidden" id="pauseOverlay">
+      <h2>Game <span>Paused</span></h2>
+      <p>Take a breather. Press <b>ESC</b> or hit resume to keep running.</p>
+      <button class="cta" id="resumeBtn">Resume</button>
+    </div>
+
+    <button id="pauseBtn" aria-label="Pause">❚❚</button>
   </div>
 
   <div id="touch">
@@ -381,6 +401,9 @@ const lbStartList = document.getElementById('lbStartList');
 const lbOverList = document.getElementById('lbOverList');
 const lbNameInput = document.getElementById('lbNameInput');
 const lbSubmitBtn = document.getElementById('lbSubmitBtn');
+const pauseOverlay = document.getElementById('pauseOverlay');
+const pauseBtn = document.getElementById('pauseBtn');
+const resumeBtn = document.getElementById('resumeBtn');
 
 let BEST = 0;
 try { BEST = parseInt(localStorage.getItem('ragnarBest') || '0', 10) || 0; } catch(e){ BEST = 0; }
@@ -529,7 +552,7 @@ let jumpQueued = false;
 function queueJump(){ jumpQueued = true; }
 
 // ---------- Game state ----------
-const STATE = { READY:'ready', PLAYING:'playing', OVER:'over' };
+const STATE = { READY:'ready', PLAYING:'playing', OVER:'over', PAUSED:'paused' };
 let state = STATE.READY;
 
 const player = {
@@ -545,8 +568,8 @@ const player = {
   invuln: 0,
 };
 
-const BASE_SPEED_CAP = 10.5; // top of the difficulty ramp; running speed can't exceed this on its own
-const GRAVITY = 0.82;
+const BASE_SPEED_CAP = 10.0; // top of the difficulty ramp; running speed can't exceed this on its own
+const GRAVITY = 0.80;
 const JUMP_VELOCITY = -13.6;
 // Total airborne duration (in dt units, ~60fps frames) for a symmetric jump
 // that launches at JUMP_VELOCITY and lands back at y=0. Used to scrub through
@@ -683,6 +706,7 @@ function update(dt){
   jumpQueued = false;
 
   // physics
+  const prevJumpHeight = -player.y; // captured pre-step, so star catches can sweep the height change too
   player.vy += GRAVITY * dt;
   player.y += player.vy * dt;
   if (player.y >= 0){ player.y = 0; player.vy = 0; player.onGround = true; }
@@ -748,24 +772,33 @@ function update(dt){
   }
 
   // star collection: only reachable mid-jump, by design.
-  // Horizontal: generous (drawn sprite width) so a catch matches what the
-  // player visually sees touching, not a stricter box. Swept on x: at high
-  // scroll speed a star's screen x can jump clean past the catch window
-  // within a single frame, so we test the whole path it traveled this frame
-  // (sx .. sx+scrollDelta) instead of just its endpoint.
-  // Vertical: tied to actual jump height reached (-player.y) vs. the star's
-  // groundOffset, with tolerance scaled by the star's radius — this is what
-  // makes low/big stars forgiving and high/small stars need a real jump.
+  // Since the jump always launches at the same fixed velocity, one jump
+  // sweeps the player's height through the *entire* 0..max range every time
+  // — so both the horizontal and vertical windows need to be a real, fairly
+  // tight "catch radius" around the star, not the whole sprite/whole flight.
+  // Otherwise timing stops mattering and every star gets caught by any jump
+  // that merely passes near it. Swept on x to avoid tunneling at high speed.
+  // Radius (tier) still controls both: bigger/low-tier stars are the more
+  // forgiving catch, smaller/high-tier ones need the jump's actual apex.
   if (!player.onGround){
-    const catchHalfW = pDrawW/2;
+    const catchHalfW = s => s.r + 20;
+    const heightTol = s => s.r * 1.6;
     const jumpHeight = -player.y;
+    // sweep height too: on a slow/throttled frame dt can be large, so the
+    // exact groundOffset value might only exist "between" this frame's start
+    // and end height, never as a single sampled point — same problem the x
+    // sweep above solves, just on the other axis.
+    const hMin = Math.min(prevJumpHeight, jumpHeight);
+    const hMax = Math.max(prevJumpHeight, jumpHeight);
     for (const s of stars){
       if (s.caught) continue;
       const sx = s.worldX - scrollX;
-      const sweepLeft = sx - s.r, sweepRight = sx + scrollDelta + s.r;
-      const xHit = sweepLeft < player.screenX + catchHalfW && sweepRight > player.screenX - catchHalfW;
-      const heightTol = s.r * 3;
-      if (xHit && Math.abs(jumpHeight - s.groundOffset) < heightTol){
+      const hw = catchHalfW(s);
+      const sweepLeft = sx - hw, sweepRight = sx + scrollDelta + hw;
+      const xHit = sweepLeft < player.screenX && sweepRight > player.screenX;
+      const tol = heightTol(s);
+      const yHit = hMax + tol >= s.groundOffset && hMin - tol <= s.groundOffset;
+      if (xHit && yHit){
         collectStar(s);
       }
     }
@@ -810,7 +843,7 @@ function endGame(){
   scoreSubmitted = false;
   lbSubmitBtn.disabled = false;
   lbSubmitBtn.textContent = 'Submit Score';
-  loadLeaderboardInto(lbOverList, 10);
+  loadLeaderboardInto(lbOverList, 20);
 }
 
 // ---------- Draw ----------
@@ -1178,6 +1211,7 @@ function startGame(){
   state = STATE.PLAYING;
   startOverlay.classList.add('hidden');
   overOverlay.classList.add('hidden');
+  pauseOverlay.classList.add('hidden');
 }
 startBtn.addEventListener('click', startGame);
 restartBtn.addEventListener('click', startGame);
@@ -1197,7 +1231,7 @@ async function handleSubmitScore(){
   try {
     await submitScoreToLeaderboard(name, score);
     lbSubmitBtn.textContent = 'Submitted ✓';
-    loadLeaderboardInto(lbOverList, 10);
+    loadLeaderboardInto(lbOverList, 20);
     loadLeaderboardInto(lbStartList, 5);
   } catch(e){
     lbSubmitBtn.textContent = 'Couldn\'t submit — retry';
@@ -1215,14 +1249,32 @@ lbNameInput.addEventListener('keyup', e => e.stopPropagation());
 // allow starting/jumping with a keypress from the ready screen too
 window.addEventListener('keydown', e => {
   if (document.activeElement === lbNameInput) return; // typing a name, don't hijack keys
-  if (state !== STATE.PLAYING && (e.code==='Space'||e.code==='ArrowUp'||e.code==='Enter')){
+  if ((state === STATE.READY || state === STATE.OVER) && (e.code==='Space'||e.code==='ArrowUp'||e.code==='Enter')){
     startGame();
   }
 });
 canvas.addEventListener('pointerdown', () => {
   if (state === STATE.PLAYING) queueJump();
-  else startGame();
+  else if (state === STATE.READY || state === STATE.OVER) startGame();
 });
+
+function togglePause(){
+  if (state === STATE.PLAYING){
+    state = STATE.PAUSED;
+    keys.left = keys.right = keys.up = false;
+    jumpQueued = false;
+    pauseOverlay.classList.remove('hidden');
+  } else if (state === STATE.PAUSED){
+    state = STATE.PLAYING;
+    pauseOverlay.classList.add('hidden');
+  }
+}
+window.addEventListener('keydown', e => {
+  if (document.activeElement === lbNameInput) return;
+  if (e.code === 'Escape') togglePause();
+});
+pauseBtn.addEventListener('click', togglePause);
+resumeBtn.addEventListener('click', togglePause);
 
 })();
 
