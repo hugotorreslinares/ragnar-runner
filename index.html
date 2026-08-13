@@ -100,6 +100,24 @@
   #stage::after{bottom:0;}
   canvas{display:block;width:100%;height:100%;}
 
+  #stageHud{
+    position:absolute;left:10px;bottom:14px;z-index:6;
+    display:flex;align-items:center;gap:14px;
+    padding:5px 10px;
+    background:rgba(16,22,24,0.55);
+    border:1px solid rgba(232,171,58,0.35);
+    border-radius:5px;
+    pointer-events:none;
+  }
+  #stageHud .grp{display:flex;align-items:center;gap:6px;}
+  #stageHud #livesMini{display:flex;gap:4px;}
+  #stageHud #starsMini, #stageHud #speedMini{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;font-weight:700;color:var(--amber);
+    text-shadow:1px 1px 0 #0a0d0e;
+  }
+  #stageHud #speedMini.maxed{color:var(--danger);}
+
   .overlay{
     position:absolute;inset:0;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -259,12 +277,33 @@
           <div class="life"></div><div class="life"></div><div class="life"></div>
         </div>
       </div>
+      <div class="hudstat">
+        <label>Stars</label>
+        <div class="val" id="starsVal">0/10</div>
+      </div>
+      <div class="hudstat">
+        <label>Speed</label>
+        <div class="val" id="speedVal">0.0</div>
+      </div>
     </div>
   </div>
 
   <div id="stage">
     <div id="errBanner" class="hidden" style="position:absolute;left:0;right:0;top:0;background:#c4453a;color:#fff;font-family:monospace;font-size:11px;line-height:1.4;padding:6px 10px;z-index:50;word-break:break-word;"></div>
     <canvas id="game" width="800" height="480"></canvas>
+    <div id="stageHud">
+      <div class="grp">
+        <div id="livesMini">
+          <div class="life"></div><div class="life"></div><div class="life"></div>
+        </div>
+      </div>
+      <div class="grp">
+        <span id="starsMini">★ 0/10</span>
+      </div>
+      <div class="grp">
+        <span id="speedMini">⚡ 0.0</span>
+      </div>
+    </div>
 
     <div class="overlay" id="startOverlay">
       <h2>Ragnar <span>runs</span></h2>
@@ -328,6 +367,11 @@ const GROUND_Y = 390; // y coordinate of the ground line
 const scoreVal = document.getElementById('scoreVal');
 const bestVal = document.getElementById('bestVal');
 const livesWrap = document.getElementById('lives');
+const starsVal = document.getElementById('starsVal');
+const livesMiniWrap = document.getElementById('livesMini');
+const starsMini = document.getElementById('starsMini');
+const speedVal = document.getElementById('speedVal');
+const speedMini = document.getElementById('speedMini');
 const startOverlay = document.getElementById('startOverlay');
 const overOverlay = document.getElementById('overOverlay');
 const overText = document.getElementById('overText');
@@ -501,6 +545,7 @@ const player = {
   invuln: 0,
 };
 
+const BASE_SPEED_CAP = 10.5; // top of the difficulty ramp; running speed can't exceed this on its own
 const GRAVITY = 0.82;
 const JUMP_VELOCITY = -13.6;
 // Total airborne duration (in dt units, ~60fps frames) for a symmetric jump
@@ -512,12 +557,21 @@ let scrollX = 0;
 let baseSpeed = 4.2;
 let curSpeed = 0;
 let elapsed = 0;
+const MAX_LIVES = 3;
 let lives = 3;
 let score = 0;
 let shakeT = 0;
+let hitFlash = 0; // 1 = just hit an obstacle, fades to 0
 
 let obstacles = [];
 let lastObstacleX = 900; // world x of the most recently spawned obstacle
+
+const STARS_PER_LIFE = 10;
+let stars = [];
+let lastStarX = 1300; // world x of the most recently spawned star
+let starsCollected = 0;
+let starPop = 0; // brief "life gained" flash timer
+let starPopups = []; // {x, y, t} per-star "+1" popups, mirrors hitFlash's "-1"
 
 function resetGame(){
   scrollX = 0;
@@ -530,13 +584,37 @@ function resetGame(){
   player.animPhase = 0; player.jumpElapsed = 0; player.curAnim = 'run'; player.curFrame = 0;
   obstacles = [];
   lastObstacleX = 900;
+  stars = [];
+  lastStarX = 1300;
+  starsCollected = 0;
+  starPop = 0;
+  starPopups = [];
+  hitFlash = 0;
   updateLivesUI();
+  updateStarsUI();
+  updateSpeedUI();
   scoreVal.textContent = '0';
 }
 
+function updateSpeedUI(){
+  const txt = curSpeed.toFixed(1);
+  const maxed = baseSpeed >= BASE_SPEED_CAP - 0.05 && !keys.right;
+  speedVal.textContent = txt;
+  speedVal.style.color = maxed ? 'var(--danger)' : '';
+  speedMini.textContent = '⚡ ' + txt;
+  speedMini.classList.toggle('maxed', maxed);
+}
+
+function updateStarsUI(){
+  const txt = starsCollected + '/' + STARS_PER_LIFE;
+  starsVal.textContent = txt;
+  starsMini.textContent = '★ ' + txt;
+}
+
 function updateLivesUI(){
-  const els = livesWrap.querySelectorAll('.life');
-  els.forEach((el, i) => el.classList.toggle('lost', i >= lives));
+  [livesWrap, livesMiniWrap].forEach(wrap => {
+    wrap.querySelectorAll('.life').forEach((el, i) => el.classList.toggle('lost', i >= lives));
+  });
 }
 
 // ---------- Obstacle generation ----------
@@ -553,6 +631,16 @@ function spawnObstacle(){
   lastObstacleX = worldX;
 }
 
+// Stars float at jump height and can only be caught mid-air (see collision
+// in update()). Gap and height are randomized so timing the jump matters.
+function spawnStar(){
+  const gap = 500 + Math.random()*600;
+  const worldX = Math.max(lastStarX + gap, scrollX + W + 300);
+  const groundOffset = 70 + Math.random()*40; // px above GROUND_Y, within jump-apex reach
+  stars.push({ worldX, groundOffset, r: 14, caught: false });
+  lastStarX = worldX;
+}
+
 // ---------- Update ----------
 function update(dt){
   if (state !== STATE.PLAYING) return;
@@ -561,14 +649,16 @@ function update(dt){
   // speed control
   const targetBoost = keys.right ? 2.6 : 0;
   const targetSlow = keys.left ? 2.4 : 0;
-  const ramp = Math.min(baseSpeed + elapsed*0.0012, 10.5); // slow difficulty ramp
+  const ramp = Math.min(baseSpeed + elapsed*0.0012, BASE_SPEED_CAP); // slow difficulty ramp
   baseSpeed = ramp;
   const desired = Math.max(1.2, baseSpeed + targetBoost - targetSlow);
   curSpeed += (desired - curSpeed) * Math.min(1, 0.12*dt);
 
-  scrollX += curSpeed * dt;
+  const scrollDelta = curSpeed * dt; // how far the world moved this frame, for sweep collision below
+  scrollX += scrollDelta;
   score = Math.floor(scrollX / 8);
   scoreVal.textContent = score;
+  updateSpeedUI();
 
   // facing
   if (keys.left && !keys.right) player.facing = -1;
@@ -604,8 +694,8 @@ function update(dt){
     );
   }
 
-  if (player.invuln > 0) player.invuln -= dt;
   if (shakeT > 0) shakeT -= dt;
+  if (hitFlash > 0) hitFlash = Math.max(0, hitFlash - dt*0.08);
 
   // spawn obstacles ahead
   while (lastObstacleX - scrollX < W + 400){
@@ -613,6 +703,17 @@ function update(dt){
   }
   // drop obstacles behind
   obstacles = obstacles.filter(o => (o.worldX - scrollX) > -120);
+
+  // spawn/drop stars ahead/behind, same scheme as obstacles
+  while (lastStarX - scrollX < W + 600){
+    spawnStar();
+  }
+  stars = stars.filter(s => !s.caught && (s.worldX - scrollX) > -80);
+
+  if (player.invuln > 0) player.invuln -= dt;
+  if (starPop > 0) starPop -= dt;
+  starPopups.forEach(p => { p.t -= dt*0.02; p.y -= dt*0.6; });
+  starPopups = starPopups.filter(p => p.t > 0);
 
   // collision
   const pDrawH = 150;
@@ -630,17 +731,51 @@ function update(dt){
     const oLeft = ox - o.w/2, oRight = ox + o.w/2;
     const oTop = GROUND_Y - o.h, oBot = GROUND_Y;
     const overlap = pLeft < oRight && pRight > oLeft && pTop < oBot && pBot > oTop;
-    if (overlap && player.invuln <= 0){
-      hitPlayer();
+    if (overlap && player.invuln <= 0 && !o.hit){
+      o.hit = true; // each obstacle can only cost one life, even if the player
+      hitPlayer();   // lingers on top of it while speed is ramping back up
     }
   }
+
+  // star collection: only reachable mid-jump, by design. Uses the drawn
+  // sprite's full bounds (not the tight obstacle hitbox) so catching a star
+  // matches what the player visually sees touching, not a stricter box.
+  // Swept on x: at high scroll speed a star's screen x can jump clean past
+  // the catch window within a single frame, so we test the whole path it
+  // traveled this frame (sx .. sx+scrollDelta) instead of just its endpoint.
+  if (!player.onGround){
+    const catchHalfW = pDrawW/2;
+    for (const s of stars){
+      if (s.caught) continue;
+      const sx = s.worldX - scrollX;
+      const sy = GROUND_Y - s.groundOffset;
+      const sweepLeft = sx - s.r, sweepRight = sx + scrollDelta + s.r;
+      const xHit = sweepLeft < player.screenX + catchHalfW && sweepRight > player.screenX - catchHalfW;
+      if (xHit && sy > pTopY - s.r && sy < pFeetY + s.r){
+        collectStar(s);
+      }
+    }
+  }
+}
+
+function collectStar(s){
+  s.caught = true;
+  starsCollected++;
+  starPopups.push({ worldX: s.worldX, y: GROUND_Y - s.groundOffset, t: 0.8 });
+  if (starsCollected >= STARS_PER_LIFE){
+    starsCollected = 0;
+    if (lives < MAX_LIVES){ lives++; updateLivesUI(); }
+    starPop = 1.2;
+  }
+  updateStarsUI();
 }
 
 function hitPlayer(){
   lives -= 1;
   player.invuln = 1.6;
-  shakeT = 0.35;
-  curSpeed = Math.max(1.5, curSpeed - 2.5);
+  shakeT = 0.5;
+  hitFlash = 1;
+  curSpeed = 0; // stumble: speed drops to a full stop, then eases back up via the normal accel curve
   updateLivesUI();
   if (lives <= 0){
     endGame();
@@ -803,6 +938,30 @@ function drawBarrel(x, w, h){
   ctx.stroke();
   ctx.restore();
 }
+function drawStar(x, y, r, bob){
+  const yy = y + Math.sin(bob) * 5;
+  ctx.save();
+  ctx.translate(x, yy);
+  ctx.rotate(Math.sin(bob*0.6) * 0.15);
+  ctx.beginPath();
+  for (let i=0;i<5;i++){
+    const outerA = -Math.PI/2 + i*(Math.PI*2/5);
+    const innerA = outerA + Math.PI/5;
+    ctx.lineTo(Math.cos(outerA)*r, Math.sin(outerA)*r);
+    ctx.lineTo(Math.cos(innerA)*r*0.42, Math.sin(innerA)*r*0.42);
+  }
+  ctx.closePath();
+  ctx.fillStyle = '#e8ab3a';
+  ctx.shadowColor = 'rgba(232,171,58,0.7)';
+  ctx.shadowBlur = 10;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = '#8a6a26';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+}
+
 function roundRect(x,y,w,h,r){
   ctx.beginPath();
   ctx.moveTo(x+r,y);
@@ -922,7 +1081,7 @@ function drawPlayer(){
 function draw(){
   ctx.save();
   if (shakeT > 0){
-    const m = shakeT*40;
+    const m = shakeT*55;
     ctx.translate((Math.random()-0.5)*m, (Math.random()-0.5)*m*0.5);
   }
   drawBackground();
@@ -934,7 +1093,49 @@ function draw(){
     else drawBarrel(ox, o.w, o.h);
   }
 
+  for (const s of stars){
+    if (s.caught) continue;
+    const sx = s.worldX - scrollX;
+    if (sx < -60 || sx > W+60) continue;
+    drawStar(sx, GROUND_Y - s.groundOffset, s.r, elapsed*0.08 + s.worldX);
+  }
+
   drawPlayer();
+
+  for (const p of starPopups){
+    const px = p.worldX - scrollX;
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, p.t);
+    ctx.fillStyle = '#e8ab3a';
+    ctx.font = 'bold 18px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('+1', px, p.y);
+    ctx.restore();
+  }
+
+  if (starPop > 0){
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, starPop);
+    ctx.fillStyle = '#e8ab3a';
+    ctx.font = 'bold 22px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('+1 LIFE', W/2, 60);
+    ctx.restore();
+  }
+
+  if (hitFlash > 0){
+    // full-screen red pulse + a "-1" popup, so a hit is unmistakable even
+    // if the player didn't clearly see the obstacle clip them.
+    ctx.save();
+    ctx.fillStyle = 'rgba(196,69,58,' + (hitFlash*0.45) + ')';
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalAlpha = Math.min(1, hitFlash*1.5);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 26px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('-1', player.screenX, GROUND_Y + player.y - 170);
+    ctx.restore();
+  }
 
   if (!allLoaded){
     ctx.fillStyle = '#e9e4d6';
