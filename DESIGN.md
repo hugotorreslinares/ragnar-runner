@@ -8,7 +8,7 @@ Vanilla HTML5 Canvas + JS, split into ES modules under `js/` (see [README.md](RE
 
 ## Rendering pipeline
 
-Single `<canvas id="game" width="800" height="480">`, 2D context (`js/dom.js` owns the reference). Fixed internal resolution (800×480), scaled to fit via CSS (`aspect-ratio: 800/480`, `width:100%`). `GROUND_Y = 390` (`js/config.js`) is the one authoritative ground line constant — background, obstacles, stars, and player all key off it.
+Single `<canvas id="game" width="900" height="580">`, 2D context (`js/dom.js` owns the reference). Fixed internal resolution (900×580), scaled to fit via CSS (`aspect-ratio: 900/580`, `width:100%`). `GROUND_Y = 390` (`js/config.js`) is the one authoritative ground line constant — background, obstacles, stars, and player all key off it.
 
 Main loop (`js/game.js`): `requestAnimationFrame(loop)` → `update(dt)` then `draw()`. `dt` is normalized to ~60fps units (dt≈1 per frame at 60fps, ~60 per real second) and clamped to 2.5 to avoid physics blowups after a tab-switch stall.
 

@@ -1,120 +1,187 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
-<title>RAGNAR RUNNER</title>
-<link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-<div id="wrap">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"
+    />
+    <title>Escape from Bogotá</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div id="wrap">
+      <div id="plate">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <div class="rivet"></div>
+          <div id="titleblock">
+            <div class="eyebrow">2026 edition</div>
+            <h1>Escape <span>from Bogotá</span></h1>
+          </div>
+        </div>
+        <div id="hud">
+          <div class="hudstat">
+            <label>Distance</label>
+            <div class="val" id="scoreVal">0</div>
+          </div>
+          <div class="hudstat">
+            <label>Best</label>
+            <div class="val" id="bestVal">0</div>
+          </div>
+          <div class="hudstat">
+            <label>Lives</label>
+            <div id="lives"></div>
+          </div>
+          <div class="hudstat">
+            <label>Stars</label>
+            <div class="val" id="starsVal">0/10</div>
+          </div>
+          <div class="hudstat">
+            <label>Speed</label>
+            <div class="val" id="speedVal">0.0</div>
+          </div>
+        </div>
+      </div>
 
-  <div id="plate">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div class="rivet"></div>
-      <div id="titleblock">
-        <div class="eyebrow">Field Test</div>
-        <h1>RAGNAR <span>RUNNER</span></h1>
-      </div>
-    </div>
-    <div id="hud">
-      <div class="hudstat">
-        <label>Distance</label>
-        <div class="val" id="scoreVal">0</div>
-      </div>
-      <div class="hudstat">
-        <label>Best</label>
-        <div class="val" id="bestVal">0</div>
-      </div>
-      <div class="hudstat">
-        <label>Lives</label>
-        <div id="lives"></div>
-      </div>
-      <div class="hudstat">
-        <label>Stars</label>
-        <div class="val" id="starsVal">0/10</div>
-      </div>
-      <div class="hudstat">
-        <label>Speed</label>
-        <div class="val" id="speedVal">0.0</div>
-      </div>
-    </div>
-  </div>
-
-  <div id="stage">
-    <div id="errBanner" class="hidden" style="position:absolute;left:0;right:0;top:0;background:#c4453a;color:#fff;font-family:monospace;font-size:11px;line-height:1.4;padding:6px 10px;z-index:50;word-break:break-word;"></div>
-    <!-- Classic (non-module) script, registered as early as possible so it
+      <div id="stage">
+        <div
+          id="errBanner"
+          class="hidden"
+          style="
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            background: #c4453a;
+            color: #fff;
+            font-family: monospace;
+            font-size: 11px;
+            line-height: 1.4;
+            padding: 6px 10px;
+            z-index: 50;
+            word-break: break-word;
+          "
+        ></div>
+        <!-- Classic (non-module) script, registered as early as possible so it
          can surface errors even if a module below fails to load/parse. -->
-    <script>
-      window.addEventListener('error', function(e){
-        try{
-          const b = document.getElementById('errBanner');
-          if (b){ b.textContent = 'Script error: ' + (e.message || e); b.classList.remove('hidden'); }
-        }catch(_){}
-      });
-    </script>
-    <canvas id="game" width="800" height="480"></canvas>
-    <div id="stageHud">
-      <div class="grp">
-        <div id="livesMini"></div>
+        <script>
+          window.addEventListener("error", function (e) {
+            try {
+              const b = document.getElementById("errBanner");
+              if (b) {
+                b.textContent = "Script error: " + (e.message || e);
+                b.classList.remove("hidden");
+              }
+            } catch (_) {}
+          });
+        </script>
+        <canvas id="game" width="900" height="580"></canvas>
+        <div id="stageHud">
+          <div class="grp">
+            <div id="livesMini"></div>
+          </div>
+          <div class="grp">
+            <span id="starsMini">★ 0/10</span>
+          </div>
+          <div class="grp">
+            <span id="speedMini">⚡ 0.0</span>
+          </div>
+        </div>
+
+        <div class="overlay" id="startOverlay">
+          <h2>Ragnar <span>runs</span></h2>
+          <p>
+            Run the loading-dock gauntlet. Speed up, slow down, and time your
+            jumps to clear the crates and barrels before they clip you. Three
+            hits and you're out.
+          </p>
+          <img
+            src="sprites/ragnar aiming.png"
+            alt="Ragnar aiming"
+            id="ragnarAiming2"
+            height="120px"
+            style="border-radius: 10px"
+          />
+          <div class="keys">
+            <div class="key"><b>←</b> slow / retreat</div>
+            <div class="key"><b>→</b> run / speed up</div>
+            <div class="key"><b>↑ / SPACE</b> jump</div>
+
+            <div class="key"><b>ESC</b> pause</div>
+          </div>
+          <button class="cta" id="startBtn">Start Running</button>
+          <div class="lb" id="lbStart">
+            <div class="lb-title">🌍 Global Top 5</div>
+            <div class="lb-list" id="lbStartList">
+              <div class="lb-status">Loading…</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="overlay hidden" id="overOverlay">
+          <div style="display: grid; grid-template-columns: 30% 60%">
+            <div class="ragnar-failed-container">
+              <img
+                src="sprites/ragnar-failed.png"
+                alt="Ragnar aiming"
+                id="ragnarFailed"
+                height="120px"
+                style="border-radius: 10px"
+              />
+            </div>
+
+            <div class="right-failed">
+              <h2>Wiped <span>Out</span></h2>
+              <p id="overText">
+                You made it some distance before the dock got the better of you.
+              </p>
+              <div class="lb-submit" id="lbSubmit">
+                <input
+                  type="text"
+                  id="lbNameInput"
+                  maxlength="12"
+                  placeholder="YOUR NAME"
+                  autocomplete="off"
+                  autocapitalize="characters"
+                />
+                <button class="cta small" id="lbSubmitBtn">Submit Score</button>
+              </div>
+              <button class="cta" id="restartBtn">Run Again</button>
+            </div>
+          </div>
+          <div class="lb" id="lbOver">
+            <div class="lb-title">🌍 Global Top 20</div>
+            <div class="lb-list" id="lbOverList">
+              <div class="lb-status">Loading…</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="overlay hidden" id="pauseOverlay">
+          <h2>Game <span>Paused</span></h2>
+          <p>
+            Take a breather. Press <b>ESC</b> or hit resume to keep running.
+          </p>
+          <button class="cta" id="resumeBtn">Resume</button>
+        </div>
+
+        <button id="pauseBtn" aria-label="Pause">❚❚</button>
       </div>
-      <div class="grp">
-        <span id="starsMini">★ 0/10</span>
+
+      <div id="touch">
+        <div class="side">
+          <div class="tbtn" id="btnLeft">◀</div>
+          <div class="tbtn" id="btnRight">▶</div>
+        </div>
+        <div class="tbtn jump" id="btnJump">JUMP</div>
       </div>
-      <div class="grp">
-        <span id="speedMini">⚡ 0.0</span>
+
+      <div id="footer-note">
+        Character art: Hugo Torres · Arrow keys or on-screen controls · Space
+        also jumps
       </div>
     </div>
 
-    <div class="overlay" id="startOverlay">
-      <h2>Ragnar <span>runs</span></h2>
-      <p>Run the loading-dock gauntlet. Speed up, slow down, and time your jumps to clear the crates and barrels before they clip you. Three hits and you're out.</p>
-      <div class="keys">
-        <div class="key"><b>←</b> slow / retreat</div>
-        <div class="key"><b>→</b> run / speed up</div>
-        <div class="key"><b>↑ / SPACE</b> jump</div>
-      </div>
-      <button class="cta" id="startBtn">Start Running</button>
-      <div class="lb" id="lbStart">
-        <div class="lb-title">🌍 Global Top 5</div>
-        <div class="lb-list" id="lbStartList"><div class="lb-status">Loading…</div></div>
-      </div>
-    </div>
-
-    <div class="overlay hidden" id="overOverlay">
-      <h2>Wiped <span>Out</span></h2>
-      <p id="overText">You made it some distance before the dock got the better of you.</p>
-      <div class="lb-submit" id="lbSubmit">
-        <input type="text" id="lbNameInput" maxlength="12" placeholder="YOUR NAME" autocomplete="off" autocapitalize="characters">
-        <button class="cta small" id="lbSubmitBtn">Submit Score</button>
-      </div>
-      <button class="cta" id="restartBtn">Run Again</button>
-      <div class="lb" id="lbOver">
-        <div class="lb-title">🌍 Global Top 20</div>
-        <div class="lb-list" id="lbOverList"><div class="lb-status">Loading…</div></div>
-      </div>
-    </div>
-
-    <div class="overlay hidden" id="pauseOverlay">
-      <h2>Game <span>Paused</span></h2>
-      <p>Take a breather. Press <b>ESC</b> or hit resume to keep running.</p>
-      <button class="cta" id="resumeBtn">Resume</button>
-    </div>
-
-    <button id="pauseBtn" aria-label="Pause">❚❚</button>
-  </div>
-
-  <div id="touch">
-    <div class="side">
-      <div class="tbtn" id="btnLeft">◀</div>
-      <div class="tbtn" id="btnRight">▶</div>
-    </div>
-    <div class="tbtn jump" id="btnJump">JUMP</div>
-  </div>
-
-  <div id="footer-note">Character art: Hugo Torres · Arrow keys or on-screen controls · Space also jumps</div>
-</div>
-
-<script type="module" src="js/main.js"></script>
-</body>
+    <script type="module" src="js/main.js"></script>
+  </body>
 </html>

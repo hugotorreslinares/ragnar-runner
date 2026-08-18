@@ -86,41 +86,267 @@ function drawBackground(){
     ctx.stroke();
   }
 }
+function drawCrate(x, w, h) {
 
-function drawCrate(x, w, h){
+   console.log('🔥 DRAW CRATE NUEVO', x, w, h);
   const top = GROUND_Y - h;
+
   ctx.save();
   ctx.translate(x, 0);
-  ctx.fillStyle = '#6b4a2b';
-  ctx.fillRect(-w/2, top, w, h);
-  ctx.fillStyle = 'rgba(0,0,0,0.25)';
-  ctx.fillRect(-w/2, top, w, 6);
-  // hazard stripe band
-  ctx.save();
+
+  // --------------------------------------------------
+  // Proporciones
+  // --------------------------------------------------
+  const halfW = w / 2;
+
+  const topY = top;
+  const bottomY = GROUND_Y;
+
+  // El cuerpo se estrecha hacia arriba
+  const topHalf = w * 0.39;
+  const bottomHalf = w * 0.50;
+
+  // --------------------------------------------------
+  // Sombra debajo de la barrera
+  // --------------------------------------------------
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
   ctx.beginPath();
-  ctx.rect(-w/2, top + h*0.38, w, h*0.24);
-  ctx.clip();
-  ctx.fillStyle = '#1a1a1a';
-  ctx.fillRect(-w/2, top + h*0.38, w, h*0.24);
-  ctx.fillStyle = '#e8ab3a';
-  for (let sx=-w; sx<w; sx+=14){
+  ctx.ellipse(
+    0,
+    GROUND_Y + 2,
+    w * 0.48,
+    5,
+    0,
+    0,
+    Math.PI * 2
+  );
+  ctx.fill();
+
+  // --------------------------------------------------
+  // Cuerpo principal
+  // --------------------------------------------------
+  const body = new Path2D();
+
+  body.moveTo(-topHalf, topY);
+  body.lineTo(topHalf, topY);
+
+  // Parte derecha inclinada
+  body.lineTo(bottomHalf, bottomY - h * 0.12);
+
+  // Base derecha
+  body.lineTo(bottomHalf * 0.92, bottomY);
+
+  // Parte inferior
+  body.lineTo(-bottomHalf * 0.92, bottomY);
+
+  // Base izquierda
+  body.lineTo(-bottomHalf, bottomY - h * 0.12);
+
+  body.closePath();
+
+  // Sombra/base
+  ctx.fillStyle = '#a92d20';
+  ctx.fill(body);
+
+  // --------------------------------------------------
+  // Cara frontal roja
+  // --------------------------------------------------
+  const front = new Path2D();
+
+  front.moveTo(-topHalf * 0.94, topY + h * 0.03);
+  front.lineTo(topHalf * 0.94, topY + h * 0.03);
+
+  front.lineTo(bottomHalf * 0.91, bottomY - h * 0.15);
+  front.lineTo(-bottomHalf * 0.91, bottomY - h * 0.15);
+
+  front.closePath();
+
+  ctx.fillStyle = '#c83a29';
+  ctx.fill(front);
+
+  // --------------------------------------------------
+  // Parte superior
+  // --------------------------------------------------
+  ctx.fillStyle = '#d04431';
+
+  ctx.beginPath();
+  ctx.moveTo(-topHalf, topY);
+  ctx.lineTo(topHalf, topY);
+  ctx.lineTo(topHalf * 0.94, topY + h * 0.055);
+  ctx.lineTo(-topHalf * 0.94, topY + h * 0.055);
+  ctx.closePath();
+  ctx.fill();
+
+  // --------------------------------------------------
+  // Nervaduras verticales
+  // --------------------------------------------------
+  const ribPositions = [-0.30, -0.10, 0.10, 0.30];
+
+  ribPositions.forEach((position) => {
+    const ribX = w * position;
+
+    const rib = new Path2D();
+
+    rib.moveTo(ribX - w * 0.018, topY + h * 0.12);
+    rib.lineTo(ribX + w * 0.018, topY + h * 0.12);
+
+    rib.lineTo(
+      ribX + w * 0.026,
+      bottomY - h * 0.18
+    );
+
+    rib.lineTo(
+      ribX - w * 0.026,
+      bottomY - h * 0.18
+    );
+
+    rib.closePath();
+
+    ctx.fillStyle = '#a92d20';
+    ctx.fill(rib);
+
+    // Highlight de la nervadura
+    ctx.strokeStyle = 'rgba(255, 100, 70, 0.28)';
+    ctx.lineWidth = 1;
+
     ctx.beginPath();
-    ctx.moveTo(sx,-999); ctx.lineTo(sx+7,-999); ctx.lineTo(sx+7+999,999); ctx.lineTo(sx+999,999);
-    ctx.closePath(); ctx.fill();
-  }
-  ctx.restore();
-  // plank lines
-  ctx.strokeStyle = 'rgba(0,0,0,0.35)';
-  ctx.lineWidth = 1.5;
-  for (let i=1;i<3;i++){
-    ctx.beginPath();
-    ctx.moveTo(-w/2 + (w/3)*i, top);
-    ctx.lineTo(-w/2 + (w/3)*i, top+h);
+    ctx.moveTo(ribX - w * 0.012, topY + h * 0.13);
+    ctx.lineTo(
+      ribX - w * 0.012,
+      bottomY - h * 0.19
+    );
     ctx.stroke();
-  }
-  ctx.strokeStyle = '#2b1c10';
+  });
+
+  // --------------------------------------------------
+  // Franjas reflectivas superiores
+  // --------------------------------------------------
+  ctx.fillStyle = '#e6e6d8';
+
+  // Franja izquierda
+  ctx.save();
+  ctx.translate(-w * 0.23, topY + h * 0.10);
+  ctx.rotate(-0.02);
+
+  ctx.beginPath();
+  ctx.roundRect(
+    -w * 0.15,
+    -h * 0.025,
+    w * 0.30,
+    h * 0.05,
+    2
+  );
+  ctx.fill();
+
+  ctx.restore();
+
+  // Franja derecha
+  ctx.save();
+  ctx.translate(w * 0.23, topY + h * 0.10);
+  ctx.rotate(0.02);
+
+  ctx.beginPath();
+  ctx.roundRect(
+    -w * 0.15,
+    -h * 0.025,
+    w * 0.30,
+    h * 0.05,
+    2
+  );
+  ctx.fill();
+
+  ctx.restore();
+
+  // --------------------------------------------------
+  // Franjas reflectivas verticales
+  // --------------------------------------------------
+  const reflectPositions = [-0.31, -0.10, 0.10, 0.31];
+
+  reflectPositions.forEach((position) => {
+    const rx = w * position;
+
+    ctx.strokeStyle = '#e9e9df';
+    ctx.lineWidth = Math.max(3, w * 0.018);
+    ctx.lineCap = 'butt';
+    ctx.lineJoin = 'round';
+
+    ctx.beginPath();
+
+    ctx.moveTo(rx, topY + h * 0.18);
+
+    ctx.lineTo(
+      rx,
+      topY + h * 0.68
+    );
+
+    ctx.lineTo(
+      rx + (position > 0 ? w * 0.015 : -w * 0.015),
+      bottomY - h * 0.22
+    );
+
+    ctx.stroke();
+  });
+
+  // --------------------------------------------------
+  // Bordes laterales para dar profundidad
+  // --------------------------------------------------
+  ctx.strokeStyle = 'rgba(75, 20, 15, 0.55)';
+  ctx.lineWidth = Math.max(1.5, w * 0.012);
+
+  ctx.beginPath();
+
+  ctx.moveTo(-topHalf, topY);
+  ctx.lineTo(-bottomHalf, bottomY - h * 0.12);
+  ctx.lineTo(-bottomHalf * 0.92, bottomY);
+
+  ctx.moveTo(topHalf, topY);
+  ctx.lineTo(bottomHalf, bottomY - h * 0.12);
+  ctx.lineTo(bottomHalf * 0.92, bottomY);
+
+  ctx.stroke();
+
+  // --------------------------------------------------
+  // Patas / salientes inferiores
+  // --------------------------------------------------
+  const feet = [-0.32, 0, 0.32];
+
+  feet.forEach((position) => {
+    const fx = w * position;
+    const footW = w * 0.17;
+    const footH = h * 0.075;
+
+    ctx.fillStyle = '#9d291e';
+
+    ctx.beginPath();
+    ctx.roundRect(
+      fx - footW / 2,
+      bottomY - footH * 0.55,
+      footW,
+      footH,
+      3
+    );
+    ctx.fill();
+  });
+
+  // --------------------------------------------------
+  // Contorno inferior
+  // --------------------------------------------------
+  ctx.strokeStyle = 'rgba(70, 18, 12, 0.6)';
   ctx.lineWidth = 2;
-  ctx.strokeRect(-w/2, top, w, h);
+
+  ctx.beginPath();
+  ctx.moveTo(
+    -bottomHalf * 0.92,
+    bottomY
+  );
+
+  ctx.lineTo(
+    bottomHalf * 0.92,
+    bottomY
+  );
+
+  ctx.stroke();
+
   ctx.restore();
 }
 
@@ -129,15 +355,15 @@ function drawBarrel(x, w, h){
   ctx.save();
   ctx.translate(x, 0);
   const grad = ctx.createLinearGradient(-w/2,0,w/2,0);
-  grad.addColorStop(0, '#2a2f33');
+  grad.addColorStop(0, '#545556');
   grad.addColorStop(0.5, '#4d565b');
   grad.addColorStop(1, '#22262a');
   ctx.fillStyle = grad;
   roundRect(-w/2, top, w, h, w*0.28);
   ctx.fill();
-  ctx.fillStyle = '#e8ab3a';
+  ctx.fillStyle = '#f7f3ed';
   ctx.fillRect(-w/2, top + h*0.22, w, h*0.09);
-  ctx.fillRect(-w/2, top + h*0.62, w, h*0.09);
+  //ctx.fillRect(-w/2, top + h*0.62, w, h*0.09);
   ctx.strokeStyle = '#0e1113';
   ctx.lineWidth = 2;
   roundRect(-w/2, top, w, h, w*0.28);
@@ -334,7 +560,7 @@ export function draw(){
   for (const o of G.obstacles){
     const ox = o.worldX - G.scrollX;
     if (ox < -100 || ox > W+100) continue;
-    if (o.type === 'crate') drawCrate(ox, o.w, o.h);
+    if (o.type === 'crate') drawCrate(ox, o.w * 2, o.h *1.2);
     else drawBarrel(ox, o.w, o.h);
   }
 
