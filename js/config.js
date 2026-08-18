@@ -45,8 +45,8 @@ export const STARS_PER_LIFE = 10;
 // knob: bigger stars sit low and give a wide catch window (easy), smaller
 // ones sit near the jump apex with a tight window (hard).
 export const STAR_TIERS = [
-  { weight: 0.45, offsetMin: 30, offsetMax: 55, r: 17 },  // easy: low, forgiving
-  { weight: 0.35, offsetMin: 65, offsetMax: 85, r: 14 },  // medium
+  { weight: 0.15, offsetMin: 90, offsetMax: 100, r: 12 },  // easy: low, forgiving
+  { weight: 0.25, offsetMin: 85, offsetMax: 115, r: 14 },  // medium
   { weight: 0.20, offsetMin: 95, offsetMax: 112, r: 10 }, // hard: near max jump height
 ];
 

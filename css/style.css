@@ -549,31 +549,35 @@ button.cta.small {
   color: var(--amber);
 }
 .initial-image {
-  background-image: url(/./images/ragnar%20aiming.png); /* Nota: el espacio se codifica como %20 */
-  background-size: auto; /* o "cover" si quieres que cubra todo el contenedor */
-  background-position: top;
-  background-repeat: no-repeat;
+    background-image: url(/./images/ragnar%20aiming.png);
+    background-size: auto;
+    background-position: top;
+    background-repeat: no-repeat;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+    overflow: hidden;
+    height: 50vh;
+    width: 50%;
 
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 10px;
-  overflow: hidden;
-  height: 50vh;
-  width: 50%;
+    /* Animación */
+    animation: scrollBackground 12s linear infinite;
+    
+    /* Transición suave al pausar */
+    transition: animation-play-state 0.4s ease;
+}
 
-  /* Animación */
-  animation: scrollBackground 12s linear infinite;
+.initial-image:hover {
+    animation-play-state: paused;
 }
 
 @keyframes scrollBackground {
-  0% {
-    background-position: top;
-  }
-  50% {
-    background-position: center;
-  }
-  100% {
-    background-position: top;
-  }
+    0% {
+        background-position: top;
+    }
+    100% {
+        background-position: bottom;
+    }
 }
