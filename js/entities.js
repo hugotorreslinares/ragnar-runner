@@ -3,7 +3,8 @@
 // (game.js's update loop), not here, so this module never needs to import
 // game.js back.
 import { W } from './dom.js';
-import { GROUND_Y, STAR_TIERS, MAX_LIVES, STARS_PER_LIFE } from './config.js';
+import { GROUND_Y, STAR_TIERS } from './config.js';
+import { TUNE } from './tuning.js';
 import { G, updateLivesUI, updateStarsUI } from './state.js';
 
 // ---------- Obstacle generation ----------
@@ -46,8 +47,8 @@ export function collectStar(s){
   s.caught = true;
   G.starsCollected++;
   G.starPopups.push({ worldX: s.worldX, y: GROUND_Y - s.groundOffset, t: 0.8 });
-  if (G.starsCollected >= STARS_PER_LIFE){
-    if (G.lives < MAX_LIVES){
+  if (G.starsCollected >= TUNE.STARS_PER_LIFE){
+    if (G.lives < TUNE.MAX_LIVES){
       G.starsCollected = 0;
       G.lives++;
       updateLivesUI();
@@ -56,7 +57,7 @@ export function collectStar(s){
       // already at the cap — bank the progress instead of resetting it to 0
       // for nothing, so it isn't wasted while capped and resumes normally
       // the moment a life is lost.
-      G.starsCollected = STARS_PER_LIFE;
+      G.starsCollected = TUNE.STARS_PER_LIFE;
     }
   }
   updateStarsUI();
@@ -83,6 +84,10 @@ export function hitPlayer(){
   G.player.invuln = 1.6;
   G.shakeT = 0.5;
   G.hitFlash = 1;
-  G.curSpeed = 0; // stumble: speed drops to a full stop, then eases back up via the normal accel curve
+  // Stumble: a hard speed cut for feedback, but never below MIN_SAFE_SPEED —
+  // dropping all the way to 0 left too little horizontal jump reach to clear
+  // the *next* obstacle even with perfect timing, right when the player is
+  // recovering from the last hit.
+  G.curSpeed = Math.max(TUNE.MIN_SAFE_SPEED, G.curSpeed * 0.35);
   updateLivesUI();
 }

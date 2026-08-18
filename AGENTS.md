@@ -13,6 +13,7 @@ Guidance for AI coding agents (Claude, Copilot, Codex, etc.) working in this rep
 - Keep it zero-build vanilla JS/ES-modules unless the user explicitly asks to add tooling. Don't introduce a framework, bundler, or npm dependency.
 - Respect the module boundaries in `js/` — put changes in the file that already owns that concern (see README's table) rather than reaching into another module's internals or duplicating logic across files. If a change doesn't fit any existing module, ask before inventing a new one.
 - `state.js`'s `G` object is the single source of mutable per-run game data. Mutate its properties (`G.foo = ...`) from any module that imports it; don't create parallel state elsewhere.
+- Any constant that affects gameplay *feel* (physics, speed, lives, star quota — see `js/tuning.js`) should be read from `TUNE.xxx`, not imported from `config.js` directly, so it stays live-editable via the `?admin` panel. Purely structural constants (sprite geometry, background alignment) stay in `config.js` only.
 - Preserve the existing architecture documented in [DESIGN.md](DESIGN.md) — read it before making structural changes (sprite system, animation timing, obstacle spawning, background tiling).
 - Sprite/animation changes must go through `SHEET.anims` (row + frameCount, in `js/config.js`) and `sheetRect()` (`js/assets.js`). Never hand-pick per-frame files or hardcode pixel offsets outside that function.
 - If you resize the spritesheet grid, update `SHEET.frameW` / `SHEET.frameH` / `frameCount` together in `js/config.js` — they must match the actual PNG.

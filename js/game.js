@@ -2,7 +2,8 @@
 // flow control (start/end/pause). This is the one module that ties
 // input + entities + render + state together each frame.
 import { W, H, scoreVal, startOverlay, overOverlay, pauseOverlay, overText, lbOverList } from './dom.js';
-import { GROUND_Y, GRAVITY, JUMP_VELOCITY, JUMP_TOTAL_FRAMES, START_SPEED, BASE_SPEED_CAP, SHEET, FRAME_ASPECT } from './config.js';
+import { GROUND_Y, SHEET, FRAME_ASPECT } from './config.js';
+import { TUNE, jumpTotalFrames } from './tuning.js';
 import { G, PHASE, phase, setPhase, resetGame, updateSpeedUI, BEST, setBest } from './state.js';
 import { keys, hasQueuedJump, clearQueuedJump, clearInput } from './input.js';
 import { spawnObstacle, spawnStar, collectStar, launchDebris, hitPlayer, starBobPhase } from './entities.js';
@@ -21,11 +22,15 @@ function update(dt){
   // into quadratic growth (measured: 3.2 -> 10.0 in ~106 frames / 1.8s
   // instead of the intended ~94s), which is why a run that never touches
   // the keys used to hit max speed almost immediately.
-  G.baseSpeed = Math.min(START_SPEED + G.elapsed*0.0012, BASE_SPEED_CAP);
-  const desired = Math.max(1.2, G.baseSpeed + targetBoost - targetSlow);
+  G.baseSpeed = Math.min(TUNE.START_SPEED + G.elapsed*TUNE.RAMP_RATE, TUNE.BASE_SPEED_CAP);
+  const desired = Math.max(TUNE.MIN_SAFE_SPEED, G.baseSpeed + targetBoost - targetSlow);
   G.curSpeed += (desired - G.curSpeed) * Math.min(1, 0.12*dt);
 
-  const scrollDelta = G.curSpeed * dt; // how far the world moved this frame, for sweep collision below
+  // Airborne moves a little slower than running (JUMP_SPEED_MULT < 1) —
+  // a deliberate small penalty for feel, not a hard stop like the old
+  // "stumble" mechanic.
+  const moveSpeed = G.player.onGround ? G.curSpeed : G.curSpeed * TUNE.JUMP_SPEED_MULT;
+  const scrollDelta = moveSpeed * dt; // how far the world moved this frame, for sweep collision below
   G.scrollX += scrollDelta;
   G.score = Math.floor(G.scrollX / 8);
   scoreVal.textContent = G.score;
@@ -38,14 +43,14 @@ function update(dt){
   // jump
   if (hasQueuedJump() && G.player.onGround){
     clearQueuedJump();
-    G.player.vy = JUMP_VELOCITY;
+    G.player.vy = TUNE.JUMP_VELOCITY;
     G.player.onGround = false;
     G.player.jumpElapsed = 0;
   }
 
   // physics
   const prevJumpHeight = -G.player.y; // captured pre-step, so star catches can sweep the height change too
-  G.player.vy += GRAVITY * dt;
+  G.player.vy += TUNE.GRAVITY * dt;
   G.player.y += G.player.vy * dt;
   if (G.player.y >= 0){ G.player.y = 0; G.player.vy = 0; G.player.onGround = true; }
   if (!G.player.onGround) G.player.jumpElapsed += dt;
@@ -58,7 +63,7 @@ function update(dt){
     G.player.curAnim = 'run';
     G.player.curFrame = Math.floor(G.player.animPhase) % SHEET.anims.run.frameCount;
   } else {
-    const progress = Math.min(1, G.player.jumpElapsed / JUMP_TOTAL_FRAMES);
+    const progress = Math.min(1, G.player.jumpElapsed / jumpTotalFrames());
     G.player.curAnim = 'jump';
     G.player.curFrame = Math.min(
       SHEET.anims.jump.frameCount - 1,
@@ -73,7 +78,7 @@ function update(dt){
   if (G.hitFlash > 0) G.hitFlash = Math.max(0, G.hitFlash - dt*0.08);
 
   for (const d of G.debris){
-    d.vy += GRAVITY * dt;
+    d.vy += TUNE.GRAVITY * dt;
     d.x += d.vx * dt;
     d.y += d.vy * dt;
     d.rot += d.rotV * dt;

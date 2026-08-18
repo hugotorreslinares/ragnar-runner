@@ -20,6 +20,12 @@ Main loop (`js/game.js`): `requestAnimationFrame(loop)` → `update(dt)` then `d
 
 `resetGame()` (in `state.js`) is the only place that re-initializes a run — it's called once by `startGame()` (`js/game.js`).
 
+## Tuning & the admin panel
+
+`js/config.js` holds default values; `js/tuning.js` re-exports the *feel*-relevant subset (gravity, jump velocity, speed ramp, min/max speed, jump speed multiplier, max lives, stars per life) as a single mutable object `TUNE`, seeded from those defaults. `game.js`/`entities.js`/`state.js` read `TUNE.xxx` — never the `config.js` constants directly — for anything that should be live-tunable. `JUMP_TOTAL_FRAMES` used to be a precomputed constant; since gravity/jump velocity can now change at runtime it's a function, `jumpTotalFrames()`, computed fresh each use.
+
+Visiting `index.html?admin` builds a floating panel (`js/admin.js`) with a number input per `TUNE` key. Editing a field mutates `TUNE` directly — since every module imports the *same* object reference, the change is visible everywhere immediately, no reload. A few fields need an extra nudge beyond the raw mutation (changing `MAX_LIVES` has to regenerate the heart icons via `rebuildLivesUI()`; changing `BASE_SPEED_CAP`/`STARS_PER_LIFE` re-renders their HUD text) — `admin.js` calls those explicitly after each edit. Without `?admin` in the URL, `admin.js` does nothing and adds no DOM.
+
 ## Sprite system
 
 One spritesheet (`sprites/spritesheet.png`), grid-packed, transparent background, feet bottom-anchored per cell so frames line up. Geometry is declared once, in `js/config.js`:
@@ -49,9 +55,10 @@ Background scrolls at `parallax = 0.55` of world speed for depth. Foreground (ob
 
 ## Physics / feel
 
-- `GRAVITY = 0.80`, `JUMP_VELOCITY = -13.6` (`js/config.js`). `JUMP_TOTAL_FRAMES` is derived (`2*|JUMP_VELOCITY|/GRAVITY`), not hand-tuned — keep it derived if you change gravity or jump velocity, don't let it drift out of sync.
+- `TUNE.GRAVITY`, `TUNE.JUMP_VELOCITY` (defaults in `js/config.js`, live-tunable — see "Tuning & the admin panel" above). `jumpTotalFrames()` (`js/tuning.js`) derives airtime as `2*|JUMP_VELOCITY|/GRAVITY` fresh each use, not hand-tuned — keep it derived if either changes, don't let it drift out of sync. Current defaults (gravity 1.0, jump velocity -15) give a 30-frame jump.
 - The jump is a fixed-velocity launch — there's no variable jump height (no "hold to jump higher"). Every jump sweeps the player's height through the *entire* 0..max range. This matters for star collision below.
-- Speed model: `G.baseSpeed` ramps slowly with `G.elapsed` (difficulty curve, capped at `BASE_SPEED_CAP = 11.0`). Player's right/left input adds a boost/slowdown offset on top, and `G.curSpeed` eases toward the desired value rather than snapping (`curSpeed += (desired-curSpeed)*0.12*dt`) for smooth accel/decel feel.
+- Speed model: `G.baseSpeed` ramps slowly with `G.elapsed` (difficulty curve, capped at `TUNE.BASE_SPEED_CAP`). Player's right/left input adds a boost/slowdown offset on top, and `G.curSpeed` eases toward the desired value rather than snapping (`curSpeed += (desired-curSpeed)*0.12*dt`) for smooth accel/decel feel. Airborne, world-scroll speed is `curSpeed * TUNE.JUMP_SPEED_MULT` (a small penalty by default, not a boost) — see `MIN_SAFE_SPEED` below for why that's still safe.
+- `TUNE.MIN_SAFE_SPEED`: a jump's horizontal reach is `curSpeed * TUNE.JUMP_SPEED_MULT * jumpTotalFrames()` — below a certain speed that reach drops under the widest obstacle's width, so a correctly-timed jump can still land on top of it. `curSpeed` is never allowed to sit below this floor (game start, "slow down" input, post-hit stumble) — see `hitPlayer()` in `entities.js` and `resetGame()`/`update()`'s speed clamp in `state.js`/`game.js`. With the current defaults that's ~155px of reach against obstacles that top out around 56px wide.
 - Collision uses a shrunk hitbox relative to the drawn sprite (`boxW = pDrawW*0.42`, `boxH = pDrawH*0.72`) so near-misses feel fair against the visual sprite bounds.
 - **Tunneling**: at high `curSpeed`/large `dt`, an object's screen position can jump clean past the collision window within a single frame. Obstacle collision is checked against the sprite's current bounds each frame (window is wide enough in practice); star collision is explicitly *swept* on both x and jump-height, comparing the whole path traveled during the frame (`sx..sx+scrollDelta`, `prevJumpHeight..jumpHeight`) rather than just the frame's endpoint — see `js/game.js`'s `update()`.
 

@@ -3,18 +3,22 @@
 // (G.foo = ...) — they just can't reassign the G binding itself, which is
 // fine since we never need to.
 import { livesWrap, livesMiniWrap, starsVal, starsMini, speedVal, speedMini, scoreVal, bestVal } from './dom.js';
-import { MAX_LIVES, STARS_PER_LIFE, BASE_SPEED_CAP, START_SPEED } from './config.js';
+import { TUNE } from './tuning.js';
 import { keys } from './input.js';
 
 export const PHASE = { READY: 'ready', PLAYING: 'playing', OVER: 'over', PAUSED: 'paused' };
 export let phase = PHASE.READY;
 export function setPhase(p){ phase = p; }
 
-// Build the heart icons from MAX_LIVES instead of hardcoding a count in the
-// HTML — keeps the HUD in sync if MAX_LIVES ever changes again.
-[livesWrap, livesMiniWrap].forEach(wrap => {
-  wrap.innerHTML = '<div class="life"></div>'.repeat(MAX_LIVES);
-});
+// Build the heart icons from TUNE.MAX_LIVES instead of hardcoding a count in
+// the HTML — keeps the HUD in sync if MAX_LIVES ever changes (including live
+// via the admin panel, which calls this again through rebuildLivesUI()).
+export function rebuildLivesUI(){
+  [livesWrap, livesMiniWrap].forEach(wrap => {
+    wrap.innerHTML = '<div class="life"></div>'.repeat(TUNE.MAX_LIVES);
+  });
+  updateLivesUI();
+}
 
 export let BEST = 0;
 try { BEST = parseInt(localStorage.getItem('ragnarBest') || '0', 10) || 0; } catch (e) { BEST = 0; }
@@ -57,10 +61,15 @@ export const G = {
   starPopups: [],      // {worldX, y, t} per-star "+1" popups, mirrors hitFlash's "-1"
 };
 
+rebuildLivesUI(); // must run after G exists — updateLivesUI() (called inside) reads G.lives
+
 export function resetGame(){
   G.scrollX = 0;
-  G.baseSpeed = START_SPEED;
-  G.curSpeed = 0;
+  G.baseSpeed = TUNE.START_SPEED;
+  // Start at running speed, not 0 easing up to it — the first few seconds
+  // of a run otherwise have too little horizontal jump reach to clear an
+  // obstacle even with perfect timing (reach = curSpeed * jump duration).
+  G.curSpeed = TUNE.START_SPEED;
   G.elapsed = 0;
   G.lives = 3;
   G.score = 0;
@@ -84,7 +93,7 @@ export function resetGame(){
 
 export function updateSpeedUI(){
   const txt = G.curSpeed.toFixed(1);
-  const maxed = G.baseSpeed >= BASE_SPEED_CAP - 0.05 && !keys.right;
+  const maxed = G.baseSpeed >= TUNE.BASE_SPEED_CAP - 0.05 && !keys.right;
   speedVal.textContent = txt;
   speedVal.style.color = maxed ? 'var(--danger)' : '';
   speedMini.textContent = '⚡ ' + txt;
@@ -92,7 +101,7 @@ export function updateSpeedUI(){
 }
 
 export function updateStarsUI(){
-  const txt = G.starsCollected + '/' + STARS_PER_LIFE;
+  const txt = G.starsCollected + '/' + TUNE.STARS_PER_LIFE;
   starsVal.textContent = txt;
   starsMini.textContent = '★ ' + txt;
 }

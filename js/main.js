@@ -5,6 +5,7 @@ import { PHASE, phase, G } from './state.js';
 import { startGame, togglePause, loop } from './game.js';
 import { queueJump } from './input.js';
 import { loadLeaderboardInto, handleSubmitScore } from './leaderboard.js';
+import './admin.js'; // no-op unless the URL has ?admin
 
 try {
   const savedName = localStorage.getItem('ragnarName');

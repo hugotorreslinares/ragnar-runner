@@ -254,3 +254,50 @@ button.cta.small{
   opacity:0.7;
 }
 @media (hover:hover){ #touch{display:none;} }
+
+#adminPanel{
+  position:fixed;
+  top:12px;
+  right:12px;
+  z-index:100;
+  width:230px;
+  max-height:calc(100vh - 24px);
+  overflow-y:auto;
+  background:rgba(16,22,24,0.94);
+  border:1px solid rgba(232,171,58,0.4);
+  border-radius:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  color:var(--paper);
+  box-shadow:0 6px 20px rgba(0,0,0,0.5);
+}
+.admin-title{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 10px;
+  letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--amber);font-weight:700;
+  border-bottom:1px solid #2c3a40;
+}
+.admin-title button{
+  background:none;border:1px solid var(--paper-dim);color:var(--paper);
+  border-radius:4px;width:20px;height:20px;line-height:1;cursor:pointer;
+}
+#adminPanel.collapsed .admin-body{ display:none; }
+.admin-body{ padding:8px 10px; }
+.admin-row{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:4px 0;
+}
+.admin-row span{ color:var(--paper-dim); }
+.admin-row input{
+  width:78px;
+  background:#1c262a;border:1px solid var(--paper-dim);border-radius:4px;
+  color:var(--paper);padding:3px 5px;
+  font-family:inherit;font-size:11px;text-align:right;
+}
+.admin-row input:focus{ outline:none;border-color:var(--amber); }
+.admin-hint{
+  margin-top:8px;padding-top:8px;border-top:1px solid #2c3a40;
+  color:var(--paper-dim);
+}
+.admin-hint span{ color:var(--amber); }

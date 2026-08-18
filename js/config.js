@@ -18,15 +18,25 @@ export const SHEET = {
 // natural aspect ratio, used only by the vector fallback runner
 export const FRAME_ASPECT = SHEET.frameW / SHEET.frameH;
 
-export const GRAVITY = 0.80;
-export const JUMP_VELOCITY = -13.6;
-// Total airborne duration (in dt units, ~60fps frames) for a symmetric jump
-// that launches at JUMP_VELOCITY and lands back at y=0. Used to scrub through
-// the jump animation's frames in sync with the actual flight, not a fixed fps.
-export const JUMP_TOTAL_FRAMES = 2 * Math.abs(JUMP_VELOCITY) / GRAVITY;
+// Defaults below were arrived at by playtesting live via the ?admin panel
+// (js/admin.js / js/tuning.js) — these are the values that made the game
+// feel playable/fun again, not arbitrary starting guesses. Jump duration
+// (dt-units, ~60fps frames) is derived from GRAVITY/JUMP_VELOCITY at
+// runtime — see jumpTotalFrames() in tuning.js — since both are tunable.
+export const GRAVITY = 1.0;
+export const JUMP_VELOCITY = -15;
 
-export const START_SPEED = 3.2; // baseSpeed at the moment a run starts
-export const BASE_SPEED_CAP = 11.0; // top of the difficulty ramp; running speed can't exceed this on its own
+export const START_SPEED = 8.6; // baseSpeed at the moment a run starts
+export const BASE_SPEED_CAP = 9.0; // top of the difficulty ramp; running speed can't exceed this on its own
+// baseSpeed climbs from START_SPEED to BASE_SPEED_CAP at this rate per dt
+// unit (~60 units/real-second) — (CAP-START)/RATE = frames to reach max.
+export const RAMP_RATE = 0.018;
+// A jump's horizontal reach is curSpeed * jumpTotalFrames() — below this
+// speed, that reach drops under the widest obstacle's width, so a
+// correctly-timed jump can still land on top of it. Never let curSpeed sit
+// below this (game start, "slow down" input, post-hit stumble).
+export const MIN_SAFE_SPEED = 4.7;
+export const JUMP_SPEED_MULT = 1.1; // while airborne, world scroll speed is curSpeed * this
 export const MAX_LIVES = 5;
 export const STARS_PER_LIFE = 10;
 
