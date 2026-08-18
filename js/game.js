@@ -208,9 +208,9 @@ export function endGame(){
   G.player.invuln = 0;
   if (G.score > BEST){
     setBest(G.score);
-    overText.textContent = 'New best! ' + G.score + ' meters down the dock before you went down.';
+    overText.textContent = 'New best! ' + G.score + ' meters away from  the center of Bogotá.';
   } else {
-    overText.textContent = 'You made it ' + G.score + ' meters before the dock got the better of you.';
+    overText.textContent = 'You made ' + G.score + ' Bogotá got you. Too many obstacles Too many potholes And definitely too many bollards.';
   }
   overOverlay.classList.remove('hidden');
   resetSubmitUI();

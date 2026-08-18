@@ -21,7 +21,7 @@ function drawBackground(){
     const dw = img.naturalWidth * scale;
     const dh = img.naturalHeight * scale;
     const dy = GROUND_Y - roadSrcY * scale;
-    const parallax = 0.55; // background drifts slower than the foreground for depth
+    const parallax = 0.45; // background drifts slower than the foreground for depth
     const totalScroll = G.scrollX * parallax;
     let idx = Math.floor(totalScroll / dw) - 1;
     const limit = totalScroll + W + dw;

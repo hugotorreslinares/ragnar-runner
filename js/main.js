@@ -45,4 +45,15 @@ window.addEventListener('keydown', e => {
 pauseBtn.addEventListener('click', togglePause);
 resumeBtn.addEventListener('click', togglePause);
 
+// Random ragnar image on startup
+const ragnarImages = [
+  'images/ragnar aiming.png',
+  'images/ragnar macdonalds.jpg',
+  'images/ragnar-tmlenio.jpg',
+];
+const ragnarImg = document.getElementById('ragnarAiming2');
+if (ragnarImg){
+  ragnarImg.src = ragnarImages[Math.floor(Math.random() * ragnarImages.length)];
+}
+
 requestAnimationFrame(loop);

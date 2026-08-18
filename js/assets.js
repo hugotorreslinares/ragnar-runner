@@ -19,13 +19,13 @@ export const bgImg = new Image();
 export let bgLoaded = false, bgFailed = false;
 bgImg.onload = () => { bgLoaded = true; };
 bgImg.onerror = () => { bgFailed = true; };
-bgImg.src = 'sprites/background.jpg';
+bgImg.src = 'sprites/background-bogota.png';
 
 export const bgImg2 = new Image();
 export let bg2Loaded = false, bg2Failed = false;
 bgImg2.onload = () => { bg2Loaded = true; };
 bgImg2.onerror = () => { bg2Failed = true; };
-bgImg2.src = 'sprites/background-bogota.png';
+bgImg2.src = 'sprites/background.jpg';
 
 // Given an animation name + frame index, compute the source rect on the
 // sheet. This is the one place that turns (row, frameIndex) into

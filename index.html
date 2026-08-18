@@ -89,19 +89,16 @@
         </div>
 
         <div class="overlay" id="startOverlay">
-          <h2>Ragnar <span>runs</span></h2>
+          <h2>ESCAPE FROM <span>BOGOTÁ</span></h2>
           <p>
-            Run the loading-dock gauntlet. Speed up, slow down, and time your
-            jumps to clear the crates and barrels before they clip you. Three
-            hits and you're out.
+            GET OUT OF BOGOTÁ! Traffic is a nightmare. There's a bollard in the
+            middle of the road. A trash can blocking the way. Three potholes
+            ahead. Don't ask. RUN.
           </p>
-          <img
-            src="sprites/ragnar aiming.png"
-            alt="Ragnar aiming"
-            id="ragnarAiming2"
-            height="120px"
-            style="border-radius: 10px"
-          />
+          <div class="initial-image" style="border-radius: 10px"></div>
+
+         
+          
           <div class="keys">
             <div class="key"><b>←</b> slow / retreat</div>
             <div class="key"><b>→</b> run / speed up</div>
@@ -122,7 +119,7 @@
           <div style="display: grid; grid-template-columns: 30% 60%">
             <div class="ragnar-failed-container">
               <img
-                src="sprites/ragnar-failed.png"
+                src="images/ragnar-defeated.jpg"
                 alt="Ragnar aiming"
                 id="ragnarFailed"
                 height="120px"
@@ -131,9 +128,12 @@
             </div>
 
             <div class="right-failed">
-              <h2>Wiped <span>Out</span></h2>
+              <h2>YOU DIDN'T MAKE IT <span>OUT</span></h2>
               <p id="overText">
-                You made it some distance before the dock got the better of you.
+                Bogotá got you.<br />
+
+                Too many obstacles. Too many potholes. And definitely too many
+                bollards.
               </p>
               <div class="lb-submit" id="lbSubmit">
                 <input
@@ -146,7 +146,7 @@
                 />
                 <button class="cta small" id="lbSubmitBtn">Submit Score</button>
               </div>
-              <button class="cta" id="restartBtn">Run Again</button>
+              <button class="cta" id="restartBtn">TRY AGAIN</button>
             </div>
           </div>
           <div class="lb" id="lbOver">
