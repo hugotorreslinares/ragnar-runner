@@ -64,7 +64,13 @@ Background scrolls at `parallax = 0.55` of world speed for depth. Foreground (ob
 
 ## Obstacle generation & collision
 
-`spawnObstacle()` (`js/entities.js`) picks crate (55%) or barrel (45%), with size jitter. Gap shrinks slowly with `G.elapsed` but is clamped to `gapClamped >= 300` minimum — difficulty ramps without ever becoming unfair/impossible. Obstacles are world-space (`worldX`), converted to screen space at draw/collision time via `worldX - G.scrollX`; spawned ahead of the visible window, culled once far behind it.
+Obstacle types live in one registry: `OBSTACLE_TYPES` in `js/obstacles/index.js`. Each entry declares `minScore` (score gate before the type can appear at all), `weight` (relative spawn frequency), `size()` (returns the collision box, with per-spawn jitter), `draw` (its renderer, one module per type under `js/obstacles/`), and `drawScale` (visual-only width multiplier — some art is drawn wider than its hitbox so the sprite reads well while collisions stay forgiving; it never affects physics).
+
+`pickObstacleType(score)` filters to the types unlocked at that score and picks among them by weight, renormalized over what's unlocked — so ratios between already-available types stay fixed as new ones unlock. Current gates: crate/barrel from 0, `trashcan` from 2000, `dumpster` from 4000.
+
+Responsibilities stay split: `spawnObstacle()` (`js/entities.js`) only decides *when* and *where* (gap/`worldX`) and asks the registry *what*; the per-type modules only draw. Neither has an if/else over types — adding one is a new draw module plus one registry entry.
+
+Gap shrinks slowly with `G.elapsed` but is clamped to `gapClamped >= 300` minimum — difficulty ramps without ever becoming unfair/impossible. Obstacles are world-space (`worldX`), converted to screen space at draw/collision time via `worldX - G.scrollX`; spawned ahead of the visible window, culled once far behind it.
 
 Each obstacle can only cost one life: on overlap it's flagged `o.hit = true` and filtered out of `G.obstacles` that same frame — without this, a slowed-down player (see "stumble" below) could linger on top of the same obstacle across frames and take repeated hits.
 

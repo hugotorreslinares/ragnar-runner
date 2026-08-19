@@ -6,38 +6,15 @@ import { W } from "./dom.js";
 import { GROUND_Y, STAR_TIERS } from "./config.js";
 import { TUNE } from "./tuning.js";
 import { G, updateLivesUI, updateStarsUI } from "./state.js";
+import { OBSTACLE_TYPES, pickObstacleType } from "./obstacles/index.js";
 
 // ---------- Obstacle generation ----------
+// Which types are eligible and how big they are lives in the obstacle
+// registry (js/obstacles/index.js); this function only decides *when* and
+// *where* one appears.
 export function spawnObstacle() {
-  const roll = Math.random();
-
-  let type;
-  let w;
-  let h;
-
-  if (roll < 0.4) {
-    // Caja
-    type = "crate";
-
-    w = 42 + Math.random() * 14;
-    h = w;
-  } else if (roll < 0.75) {
-    // Barril
-    type = "barrel";
-
-    w = 34;
-    h = 54 + Math.random() * 14;
-  } else if (roll < 0.9) {
-    type = "trashcan";
-
-    w = 44 + Math.random() * 4;
-    h = 68 + Math.random() * 6;
-  } else {
-    type = "dumpster";
-
-    w = 58 + Math.random() * 6;
-    h = 62 + Math.random() * 5;
-  }
+  const type = pickObstacleType(G.score);
+  const { w, h } = OBSTACLE_TYPES[type].size();
 
   // Gap shrinks slowly as difficulty ramps,
   // but never below a fair minimum.

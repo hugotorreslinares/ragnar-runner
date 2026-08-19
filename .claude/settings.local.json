@@ -4,7 +4,13 @@
       "Bash(pkill -f \"http.server 7777\")",
       "Bash(python3 -c \"import PIL; print\\(PIL.__version__\\)\")",
       "Bash(python3 -c \"import json,re; html=open\\('index.html'\\).read\\(\\); m=re.search\\(r'<script type=\\\\\"application/ld\\\\+json\\\\\">\\(.*?\\)</script>', html, re.S\\); json.loads\\(m.group\\(1\\)\\); print\\('JSON-LD válido'\\)\")",
-      "Bash(pkill -f \"http.server 6600\")"
+      "Bash(pkill -f \"http.server 6600\")",
+      "Bash(python3)",
+      "Bash(node --check js/render.js)",
+      "Bash(pkill -f \"http.server 5500\")",
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
     ]
   }
 }
