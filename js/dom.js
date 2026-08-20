@@ -25,6 +25,7 @@ export const lbSubmitBtn = document.getElementById('lbSubmitBtn');
 export const pauseOverlay = document.getElementById('pauseOverlay');
 export const pauseBtn = document.getElementById('pauseBtn');
 export const resumeBtn = document.getElementById('resumeBtn');
+export const muteBtn = document.getElementById('muteBtn');
 
 // Global game keys (Space/Enter/ArrowUp/Escape) must not fire while the
 // user is focused on ANY form control, not just the name input — Space or

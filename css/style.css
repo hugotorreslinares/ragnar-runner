@@ -216,7 +216,8 @@ canvas {
   color: var(--danger);
 }
 
-#pauseBtn {
+#pauseBtn,
+#muteBtn {
   position: absolute;
   right: 10px;
   top: 14px;
@@ -233,8 +234,20 @@ canvas {
   border-radius: 5px;
   cursor: pointer;
 }
-#pauseBtn:active {
+#pauseBtn:active,
+#muteBtn:active {
   transform: translateY(1px);
+}
+#muteBtn {
+  right: 52px;
+  font-size: 15px;
+}
+/* Muted reads as "off": dimmed and struck through, so the state is visible
+   without relying on swapping to a different glyph. */
+#muteBtn.muted {
+  color: rgba(240, 233, 216, 0.4);
+  border-color: rgba(232, 171, 58, 0.15);
+  text-decoration: line-through;
 }
 #startOverlay {
   background: rgba(26, 13, 1, 0.85);
@@ -549,7 +562,9 @@ button.cta.small {
   color: var(--amber);
 }
 .initial-image {
-    background-image: url(/./images/ragnar%20aiming.png);
+    /* No background-image here on purpose — js/main.js picks one of the three
+       Ragnar shots at random and sets it inline. Declaring one here too would
+       make every visitor download that image before the script replaced it. */
     background-size: auto;
     background-position: top;
     background-repeat: no-repeat;
@@ -560,7 +575,7 @@ button.cta.small {
     margin-top: 10px;
     overflow: hidden;
     height: 50vh;
-    width: 50%;
+    width: 60%;
 
     /* Animación */
     animation: scrollBackground 12s linear infinite;
@@ -577,7 +592,10 @@ button.cta.small {
     0% {
         background-position: top;
     }
+    50% {
+        background-position:  center;
+    }
     100% {
-        background-position: bottom;
+        background-position: top;
     }
 }

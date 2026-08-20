@@ -9,6 +9,7 @@ import { keys, hasQueuedJump, clearQueuedJump, clearInput } from './input.js';
 import { spawnObstacle, spawnStar, collectStar, launchDebris, hitPlayer, starBobPhase } from './entities.js';
 import { draw } from './render.js';
 import { loadLeaderboardInto, resetSubmitUI } from './leaderboard.js';
+import { startMusic, stopMusic, pauseMusic, resumeMusic, playHit } from './audio.js';
 
 function update(dt){
   if (phase !== PHASE.PLAYING) return;
@@ -123,6 +124,7 @@ function update(dt){
       o.hit = true; // each obstacle can only cost one life, even if the player
       launchDebris(o, ox);  // lingers on top of it while speed is ramping back up
       hitPlayer();          // send it flying — makes the hit unmistakable
+      playHit();
       if (G.lives <= 0) endGame();
     }
   }
@@ -174,6 +176,7 @@ export function loop(t){
 export function startGame(){
   resetGame();
   setPhase(PHASE.PLAYING);
+  startMusic();
   startOverlay.classList.add('hidden');
   overOverlay.classList.add('hidden');
   pauseOverlay.classList.add('hidden');
@@ -181,6 +184,7 @@ export function startGame(){
 
 export function endGame(){
   setPhase(PHASE.OVER);
+  stopMusic();
   // update() is a no-op once phase leaves PLAYING, so any transient effect
   // still mid-flight (screen shake, the hit-flash red tint + "-1" text,
   // invulnerability flicker) would otherwise freeze at whatever value it
@@ -205,9 +209,11 @@ export function togglePause(){
   if (phase === PHASE.PLAYING){
     setPhase(PHASE.PAUSED);
     clearInput();
+    pauseMusic();
     pauseOverlay.classList.remove('hidden');
   } else if (phase === PHASE.PAUSED){
     setPhase(PHASE.PLAYING);
+    resumeMusic();
     pauseOverlay.classList.add('hidden');
   }
 }

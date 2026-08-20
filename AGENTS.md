@@ -5,7 +5,7 @@ Guidance for AI coding agents (Claude, Copilot, Codex, etc.) working in this rep
 ## Project shape
 
 - Vanilla HTML/CSS/JS split into ES modules. No build step, no bundler, no package.json, no npm dependencies. See [README.md](README.md#project-layout) for the file-by-file breakdown.
-- Assets: `sprites/spritesheet.png` (run + jump grid), `sprites/background.jpg` (city photo), `sprites/background-bogota.png` (second background, past a distance threshold).
+- Assets: `sprites/spritesheet.png` (run + jump grid), `sprites/background.webp` (city photo), `sprites/background-bogota.webp` (second background, past a distance threshold).
 - No test suite. Verify changes by running `python3 -m http.server` from the repo root and opening the served URL — **ES modules do not load over `file://`**, don't tell the user to just double-click `index.html`.
 
 ## Ground rules
@@ -18,6 +18,7 @@ Guidance for AI coding agents (Claude, Copilot, Codex, etc.) working in this rep
 - Sprite/animation changes must go through `SHEET.anims` (row + frameCount, in `js/config.js`) and `sheetRect()` (`js/assets.js`). Never hand-pick per-frame files or hardcode pixel offsets outside that function.
 - Adding an obstacle type = a new draw module under `js/obstacles/` plus one entry in `OBSTACLE_TYPES` (`js/obstacles/index.js`). Never add an if/else or switch on `o.type` in spawning or rendering code — the registry is the only place that enumerates types.
 - If you resize the spritesheet grid, update `SHEET.frameW` / `SHEET.frameH` / `frameCount` together in `js/config.js` — they must match the actual PNG.
+- Music must loop through Web Audio with an explicit `loopEnd` (`js/audio.js`), not `<audio loop>` — the element's loop leaves an audible gap, and `buffer.duration` includes codec padding. Anything that plays a sound goes through `js/audio.js` so the mute preference keeps covering it.
 - The vector fallback runner (`drawFallbackRunner` in `js/render.js`) must keep working if `sprites/spritesheet.png` fails to load — don't remove the `useFallbackArt` path.
 - Game must never hard-crash silently: the inline `window.addEventListener('error', ...)` banner in `index.html` is intentional (kept as a classic script, not a module, so it registers before any module load can fail) — don't remove it.
 - Timers meant to represent real seconds (invulnerability windows, shake, popup fades) must decrement by `dt/60`, not raw `dt` — `dt` is in ~60fps-frame units (~60 per real second), so decrementing by raw `dt` drains a "1.6 second" timer in about 2 frames. See the comment in `js/game.js`'s `update()`.

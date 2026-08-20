@@ -1,10 +1,11 @@
 // Bootstrap — wires DOM events to the game/leaderboard/input modules and
 // kicks off the render loop. Nothing here owns game logic itself.
-import { canvas, lbStartList, lbOverList, lbSubmitBtn, lbNameInput, startBtn, restartBtn, pauseBtn, resumeBtn, isFormControlFocused } from './dom.js';
+import { canvas, lbStartList, lbOverList, lbSubmitBtn, lbNameInput, startBtn, restartBtn, pauseBtn, resumeBtn, muteBtn, isFormControlFocused } from './dom.js';
 import { PHASE, phase, G } from './state.js';
 import { startGame, togglePause, loop } from './game.js';
 import { queueJump } from './input.js';
 import { loadLeaderboardInto, handleSubmitScore } from './leaderboard.js';
+import { toggleMute, isMuted } from './audio.js';
 import './admin.js'; // no-op unless the URL has ?admin
 
 try {
@@ -45,15 +46,30 @@ window.addEventListener('keydown', e => {
 pauseBtn.addEventListener('click', togglePause);
 resumeBtn.addEventListener('click', togglePause);
 
-// Random ragnar image on startup
+// Mute is a saved preference, so the button has to render the stored state
+// on load, not assume unmuted.
+function renderMuteBtn(){
+  const m = isMuted();
+  muteBtn.classList.toggle('muted', m);
+  muteBtn.setAttribute('aria-pressed', String(m));
+  muteBtn.setAttribute('aria-label', m ? 'Unmute music' : 'Mute music');
+}
+renderMuteBtn();
+muteBtn.addEventListener('click', () => { toggleMute(); renderMuteBtn(); });
+
+// Random Ragnar shot on the start screen. All three are 1024x1536 so they
+// sit identically under `background-size: auto` — the CSS scrolls the image
+// vertically at its native size, which means pixel dimensions ARE the zoom
+// level, and a differently-sized file would visibly change the framing.
 const ragnarImages = [
-  'images/ragnar aiming.png',
-  'images/ragnar macdonalds.jpg',
-  'images/ragnar-tmlenio.jpg',
+  'images/ragnar aiming.webp',
+  'images/ragnar macdonalds.webp',
+  'images/ragnar-tmlenio.webp',
 ];
-const ragnarImg = document.getElementById('ragnarAiming2');
-if (ragnarImg){
-  ragnarImg.src = ragnarImages[Math.floor(Math.random() * ragnarImages.length)];
+const ragnarPanel = document.querySelector('.initial-image');
+if (ragnarPanel){
+  const pick = ragnarImages[Math.floor(Math.random() * ragnarImages.length)];
+  ragnarPanel.style.backgroundImage = 'url("' + encodeURI(pick) + '")';
 }
 
 requestAnimationFrame(loop);

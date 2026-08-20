@@ -46,7 +46,7 @@ Fallback: if the sheet fails to load (`sheetImg.onerror`, or a 2.5s timeout guar
 
 ## Background
 
-Two interchangeable city photos (`sprites/background.jpg`, then `sprites/background-bogota.png` past `BG_SWITCH_SCORE` distance), neither seamlessly tileable on their own. Two tricks make either work as an infinite scroller:
+Two interchangeable city photos (`sprites/background.webp`, then `sprites/background-bogota.webp` past `BG_SWITCH_SCORE` distance), neither seamlessly tileable on their own. Two tricks make either work as an infinite scroller:
 
 1. **Ground alignment**: each photo has its own `roadSrcY` constant (`BG_ROAD_SRC_Y` / `BG_ROAD_SRC_Y_2` in `js/config.js`) — the source-image pixel row where the curb meets the road — scaled so it lands exactly on `GROUND_Y`. One scale factor (`GROUND_Y / roadSrcY`) drives both `dw`/`dh` and vertical offset.
 2. **Mirror tiling**: every other repeat is drawn mirrored (`ctx.scale(-1,1)`), so the shared edge between tiles always matches itself pixel-for-pixel — no visible seam, even though the source art isn't tileable. Trade-off: on mirrored tiles the "TALLER" signage reads backwards. Accepted, not a bug.

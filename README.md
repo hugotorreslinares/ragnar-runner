@@ -26,6 +26,7 @@ js/tuning.js          the live-tunable subset of those (TUNE) — what gameplay 
 js/admin.js           the ?admin tuning panel; does nothing without the URL param
 js/dom.js             DOM element references — the only file that queries the DOM by id
 js/assets.js          image loading + spritesheet source-rect math
+js/audio.js           music + hit sound (Web Audio) and the mute preference
 js/leaderboard.js      Supabase fetch/submit/render + the submit-score UI flow
 js/input.js            keyboard/touch capture (no game-flow knowledge)
 js/state.js            game phase, the mutable per-run state object (G), resetGame()
@@ -40,7 +41,8 @@ Because it uses real `import`/`export` (not just several `<script>` tags sharing
 
 ## How it works
 
-- **Background**: `sprites/background.jpg`, a single (non-tileable) city photo. It's aligned so the sidewalk/curb line in the image lands exactly on the game's ground line, and it's tiled infinitely by mirroring every other repeat — the shared edge always matches itself exactly, so there's no visible seam. The trade-off: on mirrored repeats, the "TALLER" signage reads backwards. It scrolls at 55% of world speed for a parallax depth effect. Past a distance threshold the scenery swaps to a Bogotá skyline (`sprites/background-bogota.png`) using the same trick.
+- **Background**: `sprites/background.webp`, a single (non-tileable) city photo. It's aligned so the sidewalk/curb line in the image lands exactly on the game's ground line, and it's tiled infinitely by mirroring every other repeat — the shared edge always matches itself exactly, so there's no visible seam. The trade-off: on mirrored repeats, the "TALLER" signage reads backwards. It scrolls at 55% of world speed for a parallax depth effect. Past a distance threshold the scenery swaps to a Bogotá skyline (`sprites/background-bogota.webp`) using the same trick.
+- **Sound**: one 32-second music loop plus a hit sound, both shipped as Ogg Vorbis with an AAC copy for older Safari/iOS; the browser downloads only the one it can decode. Two details are deliberate. The music plays through Web Audio rather than `<audio loop>`, because `<audio loop>` is not gapless — measured at ~75 ms of silence per wrap, a hiccup every 32 seconds. An `AudioBufferSourceNode` with `loopEnd` set to the track's real length loops sample-accurately instead. `loopEnd` is a stated constant (`MUSIC_LOOP_SECONDS`) rather than `buffer.duration` because decoding adds codec padding — the 32.000 s file decodes to 32.016 s, and looping on that plays 16 ms of encoder tail before wrapping. Nothing is fetched until an idle callback after `load`, and nothing plays until the player presses Start, which is also the user gesture browsers require.
 - **One real spritesheet** (`sprites/spritesheet.png`): a uniform grid where every cell is exactly `SHEET.frameW × SHEET.frameH`. Row 0 is the run cycle (24 frames), row 1 is the jump cycle (23 frames). The game never hand-picks a file — it always derives the source rectangle from `(row, frameIndex)`:
   ```js
   function sheetRect(animName, frameIndex){
