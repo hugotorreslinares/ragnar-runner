@@ -12,7 +12,9 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(node -e ' *)",
-      "Bash(pkill -f \"http.server 6820\")"
+      "Bash(pkill -f \"http.server 6820\")",
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(pkill -f \"http.server 7040\")"
     ]
   }
 }
