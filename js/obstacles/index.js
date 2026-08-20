@@ -54,8 +54,8 @@ export const OBSTACLE_TYPES = {
     drawScale: 2,
   },
   openManholeTire: {
-    minScore: 3200,
-    weight: 0.05,
+    minScore: 3500,
+    weight: 0.15,
     size: () => ({ w: 70 + Math.random() * 10, h: 20 + Math.random() * 5 }),
     draw: drawOpenManholeTire,
     drawScale: 1,
