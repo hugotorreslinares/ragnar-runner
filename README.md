@@ -21,13 +21,16 @@ Vanilla HTML/CSS/JS, no build step, no dependencies — just ES modules loaded n
 ```
 index.html          markup only
 css/style.css        all styles
-js/config.js          tunable constants (physics, star tiers, thresholds)
+js/config.js          default constants (physics, star tiers, thresholds)
+js/tuning.js          the live-tunable subset of those (TUNE) — what gameplay code reads
+js/admin.js           the ?admin tuning panel; does nothing without the URL param
 js/dom.js             DOM element references — the only file that queries the DOM by id
 js/assets.js          image loading + spritesheet source-rect math
 js/leaderboard.js      Supabase fetch/submit/render + the submit-score UI flow
 js/input.js            keyboard/touch capture (no game-flow knowledge)
 js/state.js            game phase, the mutable per-run state object (G), resetGame()
 js/entities.js         spawning/catching/colliding with obstacles, stars, debris
+js/obstacles/          one draw module per obstacle type + the OBSTACLE_TYPES registry
 js/render.js           all canvas drawing
 js/game.js             the update/draw loop + start/pause/end flow
 js/main.js             wires DOM events to the modules above, starts the loop

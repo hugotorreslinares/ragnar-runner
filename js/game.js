@@ -49,7 +49,6 @@ function update(dt){
   }
 
   // physics
-  const prevJumpHeight = -G.player.y; // captured pre-step, so star catches can sweep the height change too
   G.player.vy += TUNE.GRAVITY * dt;
   G.player.y += G.player.vy * dt;
   if (G.player.y >= 0){ G.player.y = 0; G.player.vy = 0; G.player.onGround = true; }
@@ -129,43 +128,28 @@ function update(dt){
   }
   G.obstacles = G.obstacles.filter(o => !o.hit);
 
-  // star collection: only reachable mid-jump, by design.
-  // Since the jump always launches at the same fixed velocity, one jump
-  // sweeps the player's height through the *entire* 0..max range every time
-  // — so both the horizontal and vertical windows need to be a real, fairly
-  // tight "catch radius" around the star, not the whole sprite/whole flight.
-  // Swept on x (and height) to avoid tunneling at high speed / large dt.
+  // star collection: catch when the star's drawn position overlaps the
+  // player's real body — the same hurtbox the obstacle loop above uses, so
+  // "looks like it touched" and "counts as caught" ask the same question.
   //
-  // catchHalfW scales with radius *multiplicatively* (r*2 + 15), not with a
-  // flat bonus (r + 20) — a flat bonus is a *bigger fraction* of a small
-  // star's own tolerance than a big star's, so paradoxically big/easy-tier
-  // stars ended up with proportionally less forgiveness than small/hard-tier
-  // ones, the opposite of what "easy" should mean; confirmed by simulating
-  // effective catch width per tier before/after. It's also widened by the
-  // player's current vertical speed (|G.player.vy|), since dwell time near
-  // the ground (low stars) is much shorter than near the apex (high stars)
-  // for a fixed-velocity jump — without this, low stars get swept past
-  // before the height+x windows ever line up in the same frame.
-  if (!G.player.onGround){
-    const jumpSpeed = Math.abs(G.player.vy);
-    const catchHalfW = s => s.r*2 + 15 + jumpSpeed * 2.2;
-    const heightTol = s => s.r * 1.6;
-    const jumpHeight = -G.player.y;
-    const hMin = Math.min(prevJumpHeight, jumpHeight);
-    const hMax = Math.max(prevJumpHeight, jumpHeight);
-    for (const s of G.stars){
-      if (s.caught) continue;
-      const sx = s.worldX - G.scrollX;
-      const hw = catchHalfW(s);
-      const sweepLeft = sx - hw, sweepRight = sx + scrollDelta + hw;
-      const xHit = sweepLeft < G.player.screenX && sweepRight > G.player.screenX;
-      const tol = heightTol(s);
-      // matches drawStar's bob exactly, so the hitbox never drifts from what's drawn
-      const effectiveOffset = s.groundOffset - Math.sin(starBobPhase(s)) * 5;
-      const yHit = hMax + tol >= effectiveOffset && hMin - tol <= effectiveOffset;
-      if (xHit && yHit){
-        collectStar(s);
-      }
+  // This used to be gated on !onGround and compared the star's height
+  // against a single foot-height point (-G.player.y, which is exactly 0
+  // while standing). Since the sprite is 150px tall and stars hover 85-115px
+  // up, a star could visibly overlap the character's torso while the check
+  // either never ran (on the ground) or compared it against the feet.
+  for (const s of G.stars){
+    if (s.caught) continue;
+    const sx = s.worldX - G.scrollX;
+    // swept on x against the body's real width, so a fast scroll can't
+    // step the star clean past the player between two frames
+    const sweepLeft = sx - s.r, sweepRight = sx + scrollDelta + s.r;
+    const xHit = sweepLeft < pRight && sweepRight > pLeft;
+    // star's actual drawn screen y, bob included — matches drawStar exactly,
+    // so the hitbox never drifts from what's on screen
+    const starScreenY = GROUND_Y - s.groundOffset + Math.sin(starBobPhase(s)) * 5;
+    const yHit = starScreenY + s.r > pTop && starScreenY - s.r < pBot;
+    if (xHit && yHit){
+      collectStar(s);
     }
   }
 }

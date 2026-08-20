@@ -10,7 +10,9 @@
       "Bash(pkill -f \"http.server 5500\")",
       "Bash(git checkout *)",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(node -e ' *)",
+      "Bash(pkill -f \"http.server 6820\")"
     ]
   }
 }

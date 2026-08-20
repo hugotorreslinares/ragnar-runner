@@ -19,6 +19,7 @@ import { drawCrate } from "./crate.js";
 import { drawBarrel } from "./barrel.js";
 import { drawTrashcan } from "./trashcan.js";
 import { drawDumpster } from "./dumpster.js";
+import { drawOpenManholeTire } from "./openManholeTire.js";
 
 export const OBSTACLE_TYPES = {
   crate: {
@@ -39,18 +40,25 @@ export const OBSTACLE_TYPES = {
     drawScale: 1,
   },
   trashcan: {
-    minScore: 2000,
+    minScore: 1500,
     weight: 0.15,
     size: () => ({ w: 44 + Math.random() * 4, h: 68 + Math.random() * 6 }),
     draw: drawTrashcan,
     drawScale: 1,
   },
   dumpster: {
-    minScore: 4000,
+    minScore: 2500,
     weight: 0.1,
     size: () => ({ w: 58 + Math.random() * 6, h: 62 + Math.random() * 5 }),
     draw: drawDumpster,
     drawScale: 2,
+  },
+  openManholeTire: {
+    minScore: 3200,
+    weight: 0.05,
+    size: () => ({ w: 70 + Math.random() * 10, h: 20 + Math.random() * 5 }),
+    draw: drawOpenManholeTire,
+    drawScale: 1,
   },
 };
 
