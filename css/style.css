@@ -590,12 +590,12 @@ button.cta.small {
 
 @keyframes scrollBackground {
     0% {
-        background-position: top;
+        background-position: center 5%;
     }
     50% {
-        background-position:  center;
+        background-position:  center 30%;
     }
     100% {
-        background-position: top;
+        background-position: center 5%;
     }
 }
