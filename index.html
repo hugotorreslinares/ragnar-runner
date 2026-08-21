@@ -239,5 +239,20 @@
     </div>
 
     <script type="module" src="js/main.js"></script>
+
+    <!-- Vercel Web Analytics (page views). Inert anywhere but a Vercel
+         deployment with Analytics enabled for the project: the script path
+         is a route Vercel adds at deploy time, so locally it just 404s and
+         the queue shim below swallows any call until then.
+         The dashboard also exposes a project-specific path that ad blockers
+         do not recognise; swapping it in here raises the count it sees. -->
+    <script>
+      window.va =
+        window.va ||
+        function () {
+          (window.vaq = window.vaq || []).push(arguments);
+        };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
   </body>
 </html>

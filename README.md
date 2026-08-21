@@ -32,6 +32,7 @@ js/input.js            keyboard/touch capture (no game-flow knowledge)
 js/state.js            game phase, the mutable per-run state object (G), resetGame()
 js/entities.js         spawning/catching/colliding with obstacles, stars, debris
 js/obstacles/          one draw module per obstacle type + the OBSTACLE_TYPES registry
+js/obstacles/sprite.js image-backed obstacles (a picture instead of a draw function)
 js/render.js           all canvas drawing
 js/game.js             the update/draw loop + start/pause/end flow
 js/main.js             wires DOM events to the modules above, starts the loop

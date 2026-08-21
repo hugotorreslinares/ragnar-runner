@@ -11,7 +11,11 @@
 //               ones unlock)
 //   size()    — returns the collision box {w, h}; the hitbox is the source of
 //               truth for gameplay
-//   draw      — renderer from its own module
+//   draw      — renderer from its own module, OR
+//   image     — path to a picture to use instead of a draw function; the
+//               easier way to add an obstacle. Width comes from the hitbox
+//               (times drawScale) and the height follows the image's own
+//               proportions, so the art is never stretched.
 //   drawScale — visual width multiplier applied to w at draw time only. Some
 //               art is drawn wider than its hitbox so the sprite reads well
 //               while collisions stay forgiving; this never affects physics.
@@ -22,6 +26,7 @@ import { drawDumpster } from "./dumpster.js";
 import { drawArmoredVan } from "./armoredvan.js";
 import { drawSleepingPerson } from "./sleepingperson.js";
 import { drawOpenManholeTire } from "./openManholeTire.js";
+import { drawSprite, loadSprite } from "./sprite.js";
 
 export const OBSTACLE_TYPES = {
   crate: {
@@ -112,5 +117,13 @@ export function pickObstacleType(score) {
 
 export function drawObstacle(o, screenX) {
   const def = OBSTACLE_TYPES[o.type];
-  def.draw(screenX, o.w * def.drawScale, o.h);
+  const drawW = o.w * def.drawScale;
+  if (def.image) drawSprite(def.image, screenX, drawW, o.h);
+  else def.draw(screenX, drawW, o.h);
+}
+
+// Decode every obstacle picture up front. They are a few KB each, and a
+// first spawn that arrives before its image would show the placeholder block.
+for (const def of Object.values(OBSTACLE_TYPES)) {
+  if (def.image) loadSprite(def.image);
 }
