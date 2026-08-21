@@ -103,6 +103,42 @@ export function launchDebris(o, ox) {
   });
 }
 
+// Some obstacles are too anchored to go flying — a bus shelter is bolted to
+// the pavement. Those shatter instead: the structure stays put and only the
+// ad panel's glass leaves, thrown from the panel's own rectangle rather than
+// from the middle of the obstacle.
+export function launchGlass(o, ox, panel) {
+  const away = -G.player.facing || 1;
+  const left = ox - o.w / 2 + panel.x * o.w;
+  const top = GROUND_Y - o.h + panel.y * o.h;
+  const pw = panel.w * o.w;
+  const ph = panel.h * o.h;
+
+  for (let i = 0; i < 14; i++) {
+    const size = 3 + Math.random() * 5;
+    // a lopsided quad, so no two shards read as the same chip of glass
+    const shape = [];
+    for (let k = 0; k < 4; k++) {
+      const ang = (k / 4) * Math.PI * 2 + Math.random() * 0.8;
+      const rad = 0.5 + Math.random() * 0.5;
+      shape.push([Math.cos(ang) * rad, Math.sin(ang) * rad]);
+    }
+    G.debris.push({
+      type: "glass",
+      w: size,
+      h: size,
+      shape,
+      x: left + Math.random() * pw,
+      y: top + Math.random() * ph,
+      vx: away * (1.5 + Math.random() * 4.5),
+      vy: -(4 + Math.random() * 7),
+      rot: Math.random() * Math.PI,
+      rotV: (Math.random() - 0.5) * 0.9,
+      t: 0,
+    });
+  }
+}
+
 export function hitPlayer() {
   G.lives -= 1;
   G.player.invuln = 1.6;

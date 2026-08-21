@@ -27,6 +27,11 @@ import { drawArmoredVan } from "./armoredvan.js";
 import { drawSleepingPerson } from "./sleepingperson.js";
 import { drawOpenManholeTire } from "./openManholeTire.js";
 import { drawSprite, loadSprite } from "./sprite.js";
+import { ctx } from "../dom.js";
+import { GROUND_Y } from "../config.js";
+
+// width / height of paradero.webp
+const PARADERO_ASPECT = 300 / 165;
 
 export const OBSTACLE_TYPES = {
   crate: {
@@ -94,7 +99,33 @@ export const OBSTACLE_TYPES = {
     draw: drawSleepingPerson,
     drawScale: 1,
   },
+  // Bogotá bus shelter — the first obstacle made from a picture instead of a
+  // draw function (see sprite.js). The hitbox is derived from the image's own
+  // 1.818 aspect so the box and the art are the same rectangle; hard-coding a
+  // height here would let them drift apart the moment the art is re-exported.
+  //
+  // 90-100 wide measures at 8/33 down to 6/33 usable jump-trigger distances,
+  // i.e. between the dumpster (8/33) and the armoured van (6/33), against a
+  // crate's 14/33. Taller is what makes it unfair, not wider: at 105x58 it
+  // drops to 5/33 and at 116x64 to 3/33.
+  paradero: {
+    minScore: 4000,
+    weight: 0.1,
+    size: () => {
+      const w = 90 + Math.random() * 10;
+      return { w, h: w / PARADERO_ASPECT };
+    },
+    image: "images/obstacles/paradero.webp",
+    drawScale: 1,
+    // Bolted to the pavement: it does not fly apart on impact. Only the ad
+    // panel's glass does, and the shelter stays standing with an empty frame.
+    // The rectangle is the poster's own bounds inside the sprite, measured
+    // from the image and stored as fractions so it survives a re-export at a
+    // different resolution.
+    shatters: { x: 0.7067, y: 0.297, w: 0.1533, h: 0.5939 },
+  },
 };
+
 
 // Weighted pick among the types unlocked at this score. Score is passed in
 // rather than read off global state so the rule stays testable and the
@@ -120,6 +151,36 @@ export function drawObstacle(o, screenX) {
   const drawW = o.w * def.drawScale;
   if (def.image) drawSprite(def.image, screenX, drawW, o.h);
   else def.draw(screenX, drawW, o.h);
+  if (o.wrecked && def.shatters) drawEmptyFrame(o, screenX, drawW, def.shatters);
+}
+
+// After the glass has gone, black out the panel so the shelter reads as
+// damaged rather than untouched — otherwise the only trace of the crash is
+// shards that have already faded.
+function drawEmptyFrame(o, screenX, drawW, panel) {
+  const left = screenX - drawW / 2 + panel.x * drawW;
+  const top = GROUND_Y - o.h + panel.y * o.h;
+  const w = panel.w * drawW;
+  const h = panel.h * o.h;
+  ctx.fillStyle = "rgba(14, 17, 19, 0.92)";
+  ctx.fillRect(left, top, w, h);
+  // a few teeth of glass still in the frame
+  ctx.fillStyle = "rgba(198, 231, 240, 0.5)";
+  ctx.beginPath();
+  ctx.moveTo(left, top);
+  ctx.lineTo(left + w, top);
+  ctx.lineTo(left + w * 0.72, top + h * 0.16);
+  ctx.lineTo(left + w * 0.45, top + h * 0.05);
+  ctx.lineTo(left + w * 0.2, top + h * 0.19);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(left, top + h);
+  ctx.lineTo(left + w, top + h);
+  ctx.lineTo(left + w * 0.66, top + h * 0.88);
+  ctx.lineTo(left + w * 0.3, top + h * 0.95);
+  ctx.closePath();
+  ctx.fill();
 }
 
 // Decode every obstacle picture up front. They are a few KB each, and a

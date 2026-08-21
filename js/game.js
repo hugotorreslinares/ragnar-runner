@@ -6,8 +6,9 @@ import { GROUND_Y, SHEET, FRAME_ASPECT } from './config.js';
 import { TUNE, jumpTotalFrames } from './tuning.js';
 import { G, PHASE, phase, setPhase, resetGame, updateSpeedUI, BEST, setBest } from './state.js';
 import { keys, hasQueuedJump, clearQueuedJump, clearInput } from './input.js';
-import { spawnObstacle, spawnStar, collectStar, launchDebris, hitPlayer, starBobPhase } from './entities.js';
+import { spawnObstacle, spawnStar, collectStar, launchDebris, launchGlass, hitPlayer, starBobPhase } from './entities.js';
 import { draw } from './render.js';
+import { OBSTACLE_TYPES } from './obstacles/index.js';
 import { loadLeaderboardInto, resetSubmitUI } from './leaderboard.js';
 import { startMusic, stopMusic, pauseMusic, resumeMusic, playHit } from './audio.js';
 
@@ -122,13 +123,25 @@ function update(dt){
     const overlap = pLeft < oRight && pRight > oLeft && pTop < oBot && pBot > oTop;
     if (overlap && G.player.invuln <= 0 && !o.hit){
       o.hit = true; // each obstacle can only cost one life, even if the player
-      launchDebris(o, ox);  // lingers on top of it while speed is ramping back up
-      hitPlayer();          // send it flying — makes the hit unmistakable
+                    // lingers on top of it while speed is ramping back up
+      const def = OBSTACLE_TYPES[o.type];
+      if (def.shatters){
+        // Anchored to the pavement: it stays where it is and only its glass
+        // leaves. `wrecked` keeps it drawn and scrolling while `hit` keeps it
+        // from costing a second life.
+        o.wrecked = true;
+        launchGlass(o, ox, def.shatters);
+      } else {
+        launchDebris(o, ox); // send it flying — makes the hit unmistakable
+      }
+      hitPlayer();
       playHit();
       if (G.lives <= 0) endGame();
     }
   }
-  G.obstacles = G.obstacles.filter(o => !o.hit);
+  // Wrecked obstacles stay in the list so they keep being drawn; they are
+  // already flagged `hit`, so the overlap test above skips them.
+  G.obstacles = G.obstacles.filter(o => !o.hit || o.wrecked);
 
   // star collection: catch when the star's drawn position overlaps the
   // player's real body — the same hurtbox the obstacle loop above uses, so

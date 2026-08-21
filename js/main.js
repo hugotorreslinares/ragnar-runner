@@ -24,19 +24,25 @@ lbNameInput.addEventListener('keydown', e => {
 });
 lbNameInput.addEventListener('keyup', e => e.stopPropagation());
 
-// allow starting/jumping with a keypress from the ready screen too — but
-// never while a form control (name input, submit button, ...) has focus:
-// Space/Enter on the focused "Submit Score" button, for example, must
-// activate that button, not blow away the run that hasn't been submitted yet.
+// Start with a keypress from the ready screen — but NOT from the game-over
+// screen. There, the run is over and its score is sitting unsubmitted next to
+// a name field, so the same Space or Enter that has meant "jump" for the last
+// few minutes would throw the score away before it was ever saved. Reported by
+// a player who lost good runs to it. Restarting from game-over is deliberate
+// only: the TRY AGAIN button.
+//
+// The focus guard stays for the ready screen: Space/Enter on a focused form
+// control (the name field, the "Submit Score" button) must reach that control.
 window.addEventListener('keydown', e => {
   if (isFormControlFocused()) return;
-  if ((phase === PHASE.READY || phase === PHASE.OVER) && (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'Enter')){
+  if (phase === PHASE.READY && (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'Enter')){
     startGame();
   }
 });
 canvas.addEventListener('pointerdown', () => {
   if (phase === PHASE.PLAYING) queueJump();
-  else if (phase === PHASE.READY || phase === PHASE.OVER) startGame();
+  else if (phase === PHASE.READY) startGame();
+  // game-over deliberately absent, for the same reason as the keyboard above
 });
 
 window.addEventListener('keydown', e => {

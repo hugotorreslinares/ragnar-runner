@@ -135,6 +135,22 @@ function drawDebrisPiece(d) {
   const w = d.w,
     h = d.h,
     top = -h / 2;
+  if (d.type === "glass") {
+    // Pale, translucent, hard-edged: reads as glass at 4-8px where a tumbling
+    // grey box would just read as more rubble.
+    ctx.beginPath();
+    ctx.moveTo(d.shape[0][0] * w, d.shape[0][1] * h);
+    for (let i = 1; i < d.shape.length; i++) {
+      ctx.lineTo(d.shape[i][0] * w, d.shape[i][1] * h);
+    }
+    ctx.closePath();
+    ctx.fillStyle = "rgba(198, 231, 240, 0.55)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(245, 253, 255, 0.9)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    return;
+  }
   if (d.type === "crate") {
     ctx.fillStyle = "#6b4a2b";
     ctx.fillRect(-w / 2, top, w, h);
