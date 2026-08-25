@@ -6,14 +6,20 @@ import { W } from "./dom.js";
 import { GROUND_Y, STAR_TIERS } from "./config.js";
 import { TUNE } from "./tuning.js";
 import { G, updateLivesUI, updateStarsUI } from "./state.js";
-import { OBSTACLE_TYPES, pickObstacleType } from "./obstacles/index.js";
+import { OBSTACLE_TYPES, pickObstacleType, dueMilestoneType, milestoneOf, panelRect } from "./obstacles/index.js";
 
 // ---------- Obstacle generation ----------
 // Which types are eligible and how big they are lives in the obstacle
 // registry (js/obstacles/index.js); this function only decides *when* and
 // *where* one appears.
 export function spawnObstacle() {
-  const type = pickObstacleType(G.score);
+  // A scheduled type (everyPoints) takes the slot when its milestone comes
+  // up; otherwise the weighted draw decides. Obstacles are spawned a screen
+  // ahead of the player, so a milestone obstacle is reached a moment after
+  // the score that triggered it — close enough to read as "every 1000".
+  const due = dueMilestoneType(G.score, G.milestones);
+  if (due) G.milestones[due] = milestoneOf(due, G.score);
+  const type = due || pickObstacleType(G.score);
   const { w, h } = OBSTACLE_TYPES[type].size();
 
   // Gap shrinks slowly as difficulty ramps,
@@ -107,12 +113,11 @@ export function launchDebris(o, ox) {
 // the pavement. Those shatter instead: the structure stays put and only the
 // ad panel's glass leaves, thrown from the panel's own rectangle rather than
 // from the middle of the obstacle.
-export function launchGlass(o, ox, panel) {
+export function launchGlass(o, ox) {
   const away = -G.player.facing || 1;
-  const left = ox - o.w / 2 + panel.x * o.w;
-  const top = GROUND_Y - o.h + panel.y * o.h;
-  const pw = panel.w * o.w;
-  const ph = panel.h * o.h;
+  // The panel lives on the drawn picture, which is not the hitbox — ask the
+  // registry for the rectangle instead of deriving it from o.w/o.h here.
+  const { left, top, w: pw, h: ph } = panelRect(o, ox);
 
   for (let i = 0; i < 14; i++) {
     const size = 3 + Math.random() * 5;

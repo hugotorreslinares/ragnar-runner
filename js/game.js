@@ -130,7 +130,7 @@ function update(dt){
         // leaves. `wrecked` keeps it drawn and scrolling while `hit` keeps it
         // from costing a second life.
         o.wrecked = true;
-        launchGlass(o, ox, def.shatters);
+        launchGlass(o, ox);
       } else {
         launchDebris(o, ox); // send it flying — makes the hit unmistakable
       }

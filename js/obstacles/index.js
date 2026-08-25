@@ -9,6 +9,10 @@
 //               (weights are renormalized over whatever is unlocked, so the
 //               ratios between already-available types stay fixed as new
 //               ones unlock)
+//   everyPoints — alternative to minScore/weight: this type is never picked
+//               at random. It appears exactly once every N points of score,
+//               so a hard obstacle stays a punctual event rather than
+//               something the dice can throw twice in a row.
 //   size()    — returns the collision box {w, h}; the hitbox is the source of
 //               truth for gameplay
 //   draw      — renderer from its own module, OR
@@ -100,23 +104,39 @@ export const OBSTACLE_TYPES = {
     drawScale: 1,
   },
   // Bogotá bus shelter — the first obstacle made from a picture instead of a
-  // draw function (see sprite.js). The hitbox is derived from the image's own
-  // 1.818 aspect so the box and the art are the same rectangle; hard-coding a
-  // height here would let them drift apart the moment the art is re-exported.
+  // draw function (see sprite.js), and the first whose hitbox is deliberately
+  // NOT the drawn rectangle.
   //
-  // 90-100 wide measures at 8/33 down to 6/33 usable jump-trigger distances,
-  // i.e. between the dumpster (8/33) and the armoured van (6/33), against a
-  // crate's 14/33. Taller is what makes it unfair, not wider: at 105x58 it
-  // drops to 5/33 and at 116x64 to 3/33.
+  // The art is 1.818 wide for 1 tall, so "make the shelter twice as tall"
+  // means drawing it twice as wide too: 190x105 instead of 95x52. A hitbox
+  // that size is unjumpable — measured at START_SPEED, a 95-wide box stops
+  // being clearable at all above h=70 (0 of 33 trigger distances at h=75),
+  // and the jump apex is 112.5px, so no width clears h>=95. The shelter
+  // therefore keeps a narrow, tall hitbox around its middle and lets the
+  // canopy overhang and the open sides pass through — the same "art bigger
+  // than hitbox" trade the crate (2x) and the armoured van (1.7x) already
+  // make, just larger because the art is wide and the box must stay narrow.
+  //
+  // 48-50 x 76-79 measures 10-11 of 33 usable jump-trigger distances across
+  // its whole jitter range — the same difficulty as the 95x52 hitbox it
+  // replaces (10/33), against the dumpster's 14 and the armoured van's 7.
+  // Height is what makes it unfair: at 52x82 it collapses to 4/33, which is
+  // why the jitter here is deliberately tight.
   paradero: {
-    minScore: 4000,
-    weight: 0.1,
-    size: () => {
-      const w = 90 + Math.random() * 10;
-      return { w, h: w / PARADERO_ASPECT };
-    },
+    // Scheduled, not rolled: one shelter per 1000 points. It is the hardest
+    // obstacle in the game (see the measured windows above), so leaving it
+    // to the weighted draw would let two land back to back and read as
+    // unfair. Once per milestone also makes it a landmark the player can
+    // feel coming.
+    everyPoints: 1000,
+    size: () => ({ w: 48 + Math.random() * 2, h: 76 + Math.random() * 3 }),
     image: "images/obstacles/paradero.webp",
-    drawScale: 1,
+    // ~190px of drawn width, i.e. ~105px tall: double the old 52.
+    drawScale: 3.85,
+    // The picture's own proportions. Needed because the hitbox no longer
+    // carries them: anything that has to reason about the drawn rectangle
+    // (panelRect) derives its height from drawW and this, never from o.h.
+    aspect: PARADERO_ASPECT,
     // Bolted to the pavement: it does not fly apart on impact. Only the ad
     // panel's glass does, and the shelter stays standing with an empty frame.
     // The rectangle is the poster's own bounds inside the sprite, measured
@@ -129,10 +149,11 @@ export const OBSTACLE_TYPES = {
 
 // Weighted pick among the types unlocked at this score. Score is passed in
 // rather than read off global state so the rule stays testable and the
-// caller decides what "current score" means.
+// caller decides what "current score" means. Types on a fixed schedule
+// (everyPoints) are excluded here — dueMilestoneType owns those.
 export function pickObstacleType(score) {
   const available = Object.entries(OBSTACLE_TYPES).filter(
-    ([, def]) => score >= def.minScore,
+    ([, def]) => !def.everyPoints && score >= def.minScore,
   );
 
   const totalWeight = available.reduce((sum, [, def]) => sum + def.weight, 0);
@@ -146,22 +167,55 @@ export function pickObstacleType(score) {
   return available[available.length - 1][0];
 }
 
+// Returns the scheduled type whose next milestone this score has just
+// crossed, or null. `seen` maps type -> last milestone number already
+// spawned; the caller owns it (it is per-run state) and must record the new
+// milestone, otherwise the same one spawns on every call.
+export function dueMilestoneType(score, seen) {
+  for (const [type, def] of Object.entries(OBSTACLE_TYPES)) {
+    if (!def.everyPoints) continue;
+    const milestone = Math.floor(score / def.everyPoints);
+    if (milestone >= 1 && milestone > (seen[type] || 0)) return type;
+  }
+  return null;
+}
+
+export function milestoneOf(type, score) {
+  return Math.floor(score / OBSTACLE_TYPES[type].everyPoints);
+}
+
 export function drawObstacle(o, screenX) {
   const def = OBSTACLE_TYPES[o.type];
   const drawW = o.w * def.drawScale;
   if (def.image) drawSprite(def.image, screenX, drawW, o.h);
   else def.draw(screenX, drawW, o.h);
-  if (o.wrecked && def.shatters) drawEmptyFrame(o, screenX, drawW, def.shatters);
+  if (o.wrecked && def.shatters) drawEmptyFrame(o, screenX);
+}
+
+// Screen-space rectangle of an obstacle's `shatters` panel. The panel's
+// fractions are fractions of the *drawn* picture, not of the hitbox — those
+// are two different rectangles now (see paradero) — so the height comes from
+// drawW and the art's aspect. Both the glass spawn (entities.js) and the
+// blacked-out frame below go through here, so the shards and the hole they
+// leave can never drift apart.
+export function panelRect(o, screenX) {
+  const def = OBSTACLE_TYPES[o.type];
+  const panel = def.shatters;
+  const drawW = o.w * def.drawScale;
+  const drawH = def.aspect ? drawW / def.aspect : o.h;
+  return {
+    left: screenX - drawW / 2 + panel.x * drawW,
+    top: GROUND_Y - drawH + panel.y * drawH,
+    w: panel.w * drawW,
+    h: panel.h * drawH,
+  };
 }
 
 // After the glass has gone, black out the panel so the shelter reads as
 // damaged rather than untouched — otherwise the only trace of the crash is
 // shards that have already faded.
-function drawEmptyFrame(o, screenX, drawW, panel) {
-  const left = screenX - drawW / 2 + panel.x * drawW;
-  const top = GROUND_Y - o.h + panel.y * o.h;
-  const w = panel.w * drawW;
-  const h = panel.h * o.h;
+function drawEmptyFrame(o, screenX) {
+  const { left, top, w, h } = panelRect(o, screenX);
   ctx.fillStyle = "rgba(14, 17, 19, 0.92)";
   ctx.fillRect(left, top, w, h);
   // a few teeth of glass still in the frame

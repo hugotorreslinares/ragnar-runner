@@ -53,6 +53,7 @@ export const G = {
   hitFlash: 0, // 1 = just hit an obstacle, fades to 0
   obstacles: [],
   lastObstacleX: 900, // world x of the most recently spawned obstacle
+  milestones: {},     // scheduled obstacle type -> last milestone already spawned (see dueMilestoneType)
   debris: [],         // obstacles knocked flying on hit — screen-space physics, decoupled from world scroll
   stars: [],
   lastStarX: 1300,    // world x of the most recently spawned star
@@ -78,6 +79,7 @@ export function resetGame(){
   p.animPhase = 0; p.jumpElapsed = 0; p.curAnim = 'run'; p.curFrame = 0;
   G.obstacles = [];
   G.lastObstacleX = 900;
+  G.milestones = {};
   G.debris = [];
   G.stars = [];
   G.lastStarX = 1300;
