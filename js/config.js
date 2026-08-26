@@ -50,10 +50,30 @@ export const STAR_TIERS = [
   { weight: 0.20, offsetMin: 95, offsetMax: 112, r: 10 }, // hard: near max jump height
 ];
 
-// City background photo: aligned so the row where its curb meets the road
-// (roadSrcY, in source-image pixels) lands exactly on GROUND_Y. Past
-// BG_SWITCH_SCORE the scenery swaps to the Bogotá skyline for the rest of
-// the run — both photos use the same mirrored infinite-tiling trick.
-export const BG_SWITCH_SCORE = 4000;
-export const BG_ROAD_SRC_Y = 782;
-export const BG_ROAD_SRC_Y_2 = 795;
+// City background photos, in the order a run reveals them. Each entry:
+//
+//   minScore  — score from which this photo takes over. The last entry whose
+//               minScore the player has passed wins, so the list must stay
+//               sorted ascending.
+//   roadSrcY  — the source-image pixel row where the curb meets the road.
+//               It is scaled to land exactly on GROUND_Y, which is what
+//               keeps the sidewalk under the runner's feet no matter how
+//               differently the photos are framed or sized.
+//
+// All of them use the same mirrored infinite-tiling trick (see render.js).
+// Adding scenery is adding an entry here plus the file — no branching in
+// the renderer, which is why this is a list and not a pair of constants.
+export const BACKGROUNDS = [
+  { src: 'sprites/background-bogota.webp', minScore: 0,    roadSrcY: 782 },
+  { src: 'sprites/background.webp',        minScore: 4000, roadSrcY: 795 },
+  // Sunset over the eastern hills — the reward for a long run.
+  { src: 'sprites/background-sunset.webp', minScore: 5000, roadSrcY: 641 },
+];
+
+export function backgroundIndexForScore(score) {
+  let idx = 0;
+  for (let i = 0; i < BACKGROUNDS.length; i++) {
+    if (score >= BACKGROUNDS[i].minScore) idx = i;
+  }
+  return idx;
+}

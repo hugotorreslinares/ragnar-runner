@@ -5,7 +5,7 @@ Guidance for AI coding agents (Claude, Copilot, Codex, etc.) working in this rep
 ## Project shape
 
 - Vanilla HTML/CSS/JS split into ES modules. No build step, no bundler, no package.json, no npm dependencies. See [README.md](README.md#project-layout) for the file-by-file breakdown.
-- Assets: `sprites/spritesheet.png` (run + jump grid), `sprites/background.webp` (city photo), `sprites/background-bogota.webp` (second background, past a distance threshold).
+- Assets: `sprites/spritesheet.png` (run + jump grid), `sprites/background.webp`, `sprites/background-bogota.webp`, `sprites/background-sunset.webp` (scenery stages — see `BACKGROUNDS` in `js/config.js`).
 - No test suite. Verify changes by running `python3 -m http.server` from the repo root and opening the served URL — **ES modules do not load over `file://`**, don't tell the user to just double-click `index.html`.
 
 ## Ground rules

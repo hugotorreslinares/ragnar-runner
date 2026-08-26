@@ -4,9 +4,7 @@ import { ctx, W, H } from "./dom.js";
 import {
   GROUND_Y,
   FRAME_ASPECT,
-  BG_SWITCH_SCORE,
-  BG_ROAD_SRC_Y,
-  BG_ROAD_SRC_Y_2,
+  backgroundIndexForScore,
 } from "./config.js";
 import { G } from "./state.js";
 import {
@@ -14,23 +12,31 @@ import {
   allLoaded,
   useFallbackArt,
   sheetRect,
-  bgImg,
-  bgLoaded,
-  bgFailed,
-  bgImg2,
-  bg2Loaded,
-  bg2Failed,
+  backgrounds,
+  requestBackground,
 } from "./assets.js";
 import { starBobPhase } from "./entities.js";
 import { drawObstacle } from "./obstacles/index.js";
 import { roundRect } from "./obstacles/utils.js";
 
+// How far ahead of its own minScore the next background starts downloading.
+// At running speed this is roughly ten seconds of lead, enough for a few
+// hundred KB to arrive before the swap so the scenery never pops in late.
+const BG_PRELOAD_LEAD = 800;
+
 function drawBackground() {
-  const useBogota = G.score >= BG_SWITCH_SCORE;
-  const img = useBogota ? bgImg2 : bgImg;
-  const loaded = useBogota ? bg2Loaded : bgLoaded;
-  const failed = useBogota ? bg2Failed : bgFailed;
-  const roadSrcY = useBogota ? BG_ROAD_SRC_Y_2 : BG_ROAD_SRC_Y;
+  const idx = backgroundIndexForScore(G.score);
+  const entry = backgrounds[idx];
+  // Request the one we are about to draw, not just the one after it: a run
+  // can arrive at a stage without having passed through its preload window
+  // (a restart at a high score, a slow first load), and an unrequested
+  // background never loads at all — the sky falls back to a flat gradient.
+  requestBackground(entry);
+  const next = backgrounds[idx + 1];
+  if (next && G.score >= next.def.minScore - BG_PRELOAD_LEAD) requestBackground(next);
+
+  const { img, loaded, failed } = entry;
+  const roadSrcY = entry.def.roadSrcY;
 
   if (loaded) {
     const scale = GROUND_Y / roadSrcY;

@@ -2,7 +2,7 @@
 // `allLoaded`/`useFallbackArt`/`bgLoaded`/`bgFailed` are read every frame by
 // render.js rather than awaited, so a slow or blocked asset degrades the
 // visuals instead of blocking the game.
-import { SHEET } from './config.js';
+import { SHEET, BACKGROUNDS } from './config.js';
 
 export const sheetImg = new Image();
 export let allLoaded = false;
@@ -15,17 +15,29 @@ setTimeout(() => {
   if (!allLoaded){ useFallbackArt = true; allLoaded = true; }
 }, 2500);
 
-export const bgImg = new Image();
-export let bgLoaded = false, bgFailed = false;
-bgImg.onload = () => { bgLoaded = true; };
-bgImg.onerror = () => { bgFailed = true; };
-bgImg.src = 'sprites/background-bogota.webp';
+// One entry per BACKGROUNDS definition. They are NOT all fetched at
+// startup: each photo is a few hundred KB and most runs never reach the
+// later ones, so a background is only requested when the renderer asks for
+// it (see requestBackground). The first one is requested immediately since
+// every run starts on it.
+export const backgrounds = BACKGROUNDS.map(def => ({
+  def,
+  img: new Image(),
+  loaded: false,
+  failed: false,
+  requested: false,
+}));
 
-export const bgImg2 = new Image();
-export let bg2Loaded = false, bg2Failed = false;
-bgImg2.onload = () => { bg2Loaded = true; };
-bgImg2.onerror = () => { bg2Failed = true; };
-bgImg2.src = 'sprites/background.webp';
+// Start fetching a background. Safe to call every frame — it only acts once.
+export function requestBackground(entry){
+  if (entry.requested) return;
+  entry.requested = true;
+  entry.img.onload = () => { entry.loaded = true; };
+  entry.img.onerror = () => { entry.failed = true; };
+  entry.img.src = entry.def.src;
+}
+
+requestBackground(backgrounds[0]);
 
 // Given an animation name + frame index, compute the source rect on the
 // sheet. This is the one place that turns (row, frameIndex) into
