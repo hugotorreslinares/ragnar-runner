@@ -2,7 +2,9 @@
 
 An HTML5 side-scrolling runner built around the **Ragnar "El Coleccionista"** run-cycle spritesheet from [Taller de la Mancha](https://tallerdelamancha.com).
 
-Play it here once GitHub Pages is enabled: `https://<your-username>.github.io/ragnar-runner/`
+Play it at [escape-bogota.vercel.app](https://escape-bogota.vercel.app/).
+
+The same repo also runs as-is on GitHub Pages (Settings → Pages → *Deploy from a branch* → `main` / `/ (root)`), at `https://hugotorreslinares.github.io/ragnar-runner/`. No build step and nothing to configure: every path in the project is relative, and the manifest's `start_url`/`scope` are `"./"`, so the game works under the `/ragnar-runner/` subpath a project site is served from. The empty `.nojekyll` file keeps Pages from running the site through Jekyll, which would drop any file or folder whose name starts with `_`. Note the two deployments share one Supabase leaderboard but have separate `localStorage`, so a personal best does not follow the player between them.
 
 ## Controls
 

@@ -258,6 +258,26 @@
           (window.vaq = window.vaq || []).push(arguments);
         };
     </script>
-    <script defer src="/_vercel/insights/script.js"></script>
+    <script>
+      // The insights route only exists on a Vercel deployment, and its path
+      // is absolute, so on GitHub Pages (where the game lives under
+      // /ragnar-runner/) it is a guaranteed 404 in the console. Skip the
+      // hosts we know cannot serve it and load it everywhere else — an
+      // allowlist of vercel.app would silently switch analytics off the day
+      // a custom domain is attached.
+      (function () {
+        var h = location.hostname;
+        var noInsights =
+          h.endsWith(".github.io") ||
+          h === "localhost" ||
+          h === "127.0.0.1" ||
+          h === "";
+        if (noInsights) return;
+        var s = document.createElement("script");
+        s.defer = true;
+        s.src = "/_vercel/insights/script.js";
+        document.body.appendChild(s);
+      })();
+    </script>
   </body>
 </html>
