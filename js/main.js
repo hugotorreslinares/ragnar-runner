@@ -7,6 +7,16 @@ import { queueJump } from './input.js';
 import { loadLeaderboardInto, handleSubmitScore } from './leaderboard.js';
 import { toggleMute, isMuted } from './audio.js';
 import './admin.js'; // no-op unless the URL has ?admin
+import './install.js'; // "Install app" button — no-op outside Chromium
+
+// The service worker exists so Chromium considers the game installable (see
+// sw.js). Registration is deliberately late and failure-tolerant: nothing in
+// the game depends on it, and a browser without support just skips it.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
 
 try {
   const savedName = localStorage.getItem('ragnarName');

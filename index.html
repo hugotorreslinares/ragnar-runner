@@ -45,6 +45,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
 
+    <link rel="manifest" href="manifest.json" />
     <link rel="stylesheet" href="css/style.css" />
     <script type="application/ld+json">
       {
@@ -160,6 +161,10 @@
             <div class="key"><b>ESC</b> pause</div>
           </div>
           <button class="cta" id="startBtn">Start Running</button>
+          <!-- Hidden until Chromium says the game is installable (see
+               js/install.js). Safari never fires that event, so there the
+               button never appears. -->
+          <button class="cta small hidden" id="installBtn">⤓ Install app</button>
           <div class="lb" id="lbStart">
             <div class="lb-title">🌍 Global Top 5</div>
             <div class="lb-list" id="lbStartList">
