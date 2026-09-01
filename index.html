@@ -47,6 +47,10 @@
 
     <link rel="manifest" href="manifest.json" />
     <link rel="stylesheet" href="css/style.css" />
+    <!-- Stamps data-theme on <html> from the current month. Loaded here, next
+         to the stylesheet, so the seasonal palette is in place before the
+         first paint instead of flashing the default one. -->
+    <script type="module" src="js/theme.js"></script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",

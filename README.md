@@ -38,6 +38,7 @@ js/obstacles/sprite.js image-backed obstacles (a picture instead of a draw funct
 js/render.js           all canvas drawing
 js/game.js             the update/draw loop + start/pause/end flow
 js/main.js             wires DOM events to the modules above, starts the loop
+js/theme.js            picks the seasonal interface theme from the current month
 ```
 
 Because it uses real `import`/`export` (not just several `<script>` tags sharing global scope), each file only sees what it explicitly imports — no accidental cross-file variable collisions. The trade-off: **ES modules require a local server**, they won't load over `file://`. See [Local dev](#local-dev).

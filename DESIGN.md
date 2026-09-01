@@ -113,6 +113,16 @@ Every external asset/network dependency (spritesheet, both background images, le
 
 **Restarting is click-only from game over.** The ready screen starts on Space/Enter/ArrowUp, the game-over screen does not — only the TRY AGAIN button restarts from there. On that screen the run's score is sitting unsubmitted beside the name field, and the same Space that meant "jump" for the whole run would discard it before it was ever saved; a player reported losing good scores exactly this way. The canvas `pointerdown` handler leaves game over out for the same reason. Don't add a keyboard shortcut back to `startGame()` from `PHASE.OVER` — see `js/main.js`.
 
+## Seasonal themes
+
+The interface reskins itself by month: September is *amor y amistad* (pinks over plum), October is Halloween (pumpkin orange over near-black purple), December is Navidad (gold over pine green). Every other month uses the default palette.
+
+`js/theme.js` is the only place that knows which month maps to which theme; it stamps `data-theme` on `<html>` and nothing else. The palettes live in `css/style.css` as `:root[data-theme="..."]` blocks that override *only* CSS custom properties — never layout — so an unknown or missing theme silently falls back to the default `:root` and the interface cannot break out of season. That is also why the shell's colours (page backdrop, plate gradients, stage frame, button drop shadows, rules) are tokens (`--panel-hi`, `--edge`, `--stage-bg`, …) rather than inline hex: a colour written inline is a colour a theme cannot repaint. The accent is duplicated as `--amber-rgb` because several rules need it at partial alpha and `rgba()` cannot take a hex variable.
+
+The script is loaded from `<head>` next to the stylesheet rather than imported by `main.js`, so the palette is applied before the first paint instead of flashing the default one. `?theme=halloween` (or `amistad` / `navidad`) forces a theme for review out of season.
+
+Only the HTML/CSS chrome is themed — the canvas art is not. The game's own sprites and backgrounds are photographic and stage-driven (see Background), and tinting them per month would fight that.
+
 ## Extending
 
 - New animation: add a row to the spritesheet PNG + entry in `SHEET.anims` (`js/config.js`). No other code changes needed.

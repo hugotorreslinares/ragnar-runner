@@ -1,7 +1,13 @@
+/* The palette below is the default (out-of-season) look. Seasonal themes at
+   the bottom of this file override these same tokens, so every colour that a
+   theme should be able to repaint has to live here rather than inline. */
 :root {
   --sky-hi: #57707a;
   --sky-lo: #232f34;
   --amber: #e8ab3a;
+  /* Kept as raw channels too: several rules need the accent at partial alpha,
+     and rgba() cannot take a hex var. */
+  --amber-rgb: 232, 171, 58;
   --amber-dim: #8a6a26;
   --purple: #4a3a72;
   --purple-lt: #7a63ad;
@@ -9,6 +15,23 @@
   --paper: #e9e4d6;
   --paper-dim: #a49f8f;
   --danger: #c4453a;
+
+  /* Shell chrome: page backdrop, riveted plates, stage frame, buttons. */
+  --bg-hi: #3a4a50;
+  --bg-mid: #1a2226;
+  --bg-lo: #101416;
+  --panel-hi: #2c3a40;
+  --panel-lo: #1c262a;
+  --edge: var(--edge);
+  --shadow: var(--shadow);
+  --stage-bg: #1a2226;
+  --stage-inset: #10171a;
+  --ctl-hi: #33434a;
+  --ctl-lo: #212b2f;
+  --rule: #2c3a40;
+  --cta-shadow: var(--cta-shadow);
+  /* Decorative glyph appended to the eyebrow; empty unless a theme sets it. */
+  --theme-mark: "";
 }
 * {
   box-sizing: border-box;
@@ -20,9 +43,9 @@ body {
   height: 100%;
   background: radial-gradient(
     1200px 700px at 50% -10%,
-    #3a4a50 0%,
-    #1a2226 60%,
-    #101416 100%
+    var(--bg-hi) 0%,
+    var(--bg-mid) 60%,
+    var(--bg-lo) 100%
   );
   color: var(--paper);
   font-family: "Arial Narrow", "Oswald", Arial, sans-serif;
@@ -53,12 +76,12 @@ body {
   justify-content: space-between;
   gap: 12px;
   padding: 10px 16px;
-  background: linear-gradient(180deg, #2c3a40, #1c262a);
-  border: 2px solid #0d1315;
+  background: linear-gradient(180deg, var(--panel-hi), var(--panel-lo));
+  border: 2px solid var(--edge);
   border-radius: 6px;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 3px 0 #0a0d0e;
+    0 3px 0 var(--shadow);
 }
 #plate .rivet {
   width: 7px;
@@ -87,7 +110,7 @@ body {
   text-transform: uppercase;
   font-weight: 700;
   color: var(--paper);
-  text-shadow: 2px 2px 0 #0a0d0e;
+  text-shadow: 2px 2px 0 var(--shadow);
 }
 #titleblock h1 span {
   color: var(--amber);
@@ -151,13 +174,13 @@ body {
   position: relative;
   width: 100%;
   aspect-ratio: 900 / 580;
-  border: 2px solid #0d1315;
+  border: 2px solid var(--edge);
   border-radius: 6px;
   overflow: hidden;
   box-shadow:
     0 10px 30px rgba(0, 0, 0, 0.5),
-    inset 0 0 0 6px #10171a;
-  background: #1a2226;
+    inset 0 0 0 6px var(--stage-inset);
+  background: var(--stage-bg);
 }
 #stage::before,
 #stage::after {
@@ -196,7 +219,7 @@ canvas {
   gap: 14px;
   padding: 5px 10px;
   background: rgba(16, 22, 24, 0.55);
-  border: 1px solid rgba(232, 171, 58, 0.35);
+  border: 1px solid rgba(var(--amber-rgb), 0.35);
   border-radius: 5px;
   pointer-events: none;
 }
@@ -215,7 +238,7 @@ canvas {
   font-size: 13px;
   font-weight: 700;
   color: var(--amber);
-  text-shadow: 1px 1px 0 #0a0d0e;
+  text-shadow: 1px 1px 0 var(--shadow);
 }
 #stageHud #speedMini.maxed {
   color: var(--danger);
@@ -235,7 +258,7 @@ canvas {
   font-size: 13px;
   color: var(--paper);
   background: rgba(16, 22, 24, 0.55);
-  border: 1px solid rgba(232, 171, 58, 0.35);
+  border: 1px solid rgba(var(--amber-rgb), 0.35);
   border-radius: 5px;
   cursor: pointer;
 }
@@ -251,7 +274,7 @@ canvas {
    without relying on swapping to a different glyph. */
 #muteBtn.muted {
   color: rgba(240, 233, 216, 0.4);
-  border-color: rgba(232, 171, 58, 0.15);
+  border-color: rgba(var(--amber-rgb), 0.15);
   text-decoration: line-through;
 }
 #startOverlay {
@@ -280,7 +303,7 @@ canvas {
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--paper);
-  text-shadow: 2px 2px 0 #0a0d0e;
+  text-shadow: 2px 2px 0 var(--shadow);
 }
 .overlay h2 span {
   color: var(--amber);
@@ -313,7 +336,7 @@ canvas {
   border-bottom-width: 3px;
   padding: 5px 8px;
   border-radius: 5px;
-  background: #1c262a;
+  background: var(--panel-lo);
   white-space: nowrap;
 }
 .key b {
@@ -332,14 +355,14 @@ button.cta {
   padding: clamp(9px, 2.4vw, 12px) clamp(18px, 5vw, 26px);
   cursor: pointer;
   box-shadow:
-    0 4px 0 #6a501d,
+    0 4px 0 var(--cta-shadow),
     0 6px 10px rgba(0, 0, 0, 0.4);
   transition: transform 0.08s;
   flex-shrink: 0;
 }
 button.cta:active {
   transform: translateY(3px);
-  box-shadow: 0 1px 0 #6a501d;
+  box-shadow: 0 1px 0 var(--cta-shadow);
 }
 .hidden {
   display: none !important;
@@ -349,7 +372,7 @@ button.cta:active {
   width: 100%;
   max-width: 360px;
   margin-top: 4px;
-  border: 1px solid #2c3a40;
+  border: 1px solid var(--rule);
   border-radius: 6px;
   background: rgba(10, 14, 16, 0.5);
   overflow: hidden;
@@ -361,9 +384,9 @@ button.cta:active {
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: var(--amber);
-  background: rgba(232, 171, 58, 0.08);
+  background: rgba(var(--amber-rgb), 0.08);
   padding: 6px 10px;
-  border-bottom: 1px solid #2c3a40;
+  border-bottom: 1px solid var(--rule);
 }
 .lb-list {
   max-height: 150px;
@@ -420,7 +443,7 @@ button.cta:active {
   font-size: 13px;
   letter-spacing: 1px;
   text-transform: uppercase;
-  background: #1c262a;
+  background: var(--panel-lo);
   border: 1px solid var(--paper-dim);
   border-radius: 5px;
   color: var(--paper);
@@ -451,9 +474,9 @@ button.cta.small {
   width: 64px;
   height: 52px;
   border-radius: 8px;
-  border: 1px solid #0d1315;
+  border: 1px solid var(--edge);
   border-bottom-width: 4px;
-  background: linear-gradient(180deg, #33434a, #212b2f);
+  background: linear-gradient(180deg, var(--ctl-hi), var(--ctl-lo));
   color: var(--paper);
   font-size: 20px;
   display: flex;
@@ -498,7 +521,7 @@ button.cta.small {
   max-height: calc(100vh - 24px);
   overflow-y: auto;
   background: rgba(16, 22, 24, 0.94);
-  border: 1px solid rgba(232, 171, 58, 0.4);
+  border: 1px solid rgba(var(--amber-rgb), 0.4);
   border-radius: 6px;
   font-family: "JetBrains Mono", monospace;
   font-size: 11px;
@@ -514,7 +537,7 @@ button.cta.small {
   text-transform: uppercase;
   color: var(--amber);
   font-weight: 700;
-  border-bottom: 1px solid #2c3a40;
+  border-bottom: 1px solid var(--rule);
 }
 .admin-title button {
   background: none;
@@ -544,7 +567,7 @@ button.cta.small {
 }
 .admin-row input {
   width: 78px;
-  background: #1c262a;
+  background: var(--panel-lo);
   border: 1px solid var(--paper-dim);
   border-radius: 4px;
   color: var(--paper);
@@ -560,7 +583,7 @@ button.cta.small {
 .admin-hint {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid #2c3a40;
+  border-top: 1px solid var(--rule);
   color: var(--paper-dim);
 }
 .admin-hint span {
@@ -603,4 +626,86 @@ button.cta.small {
     100% {
         background-position: center 5%;
     }
+}
+
+/* ----------------------------------------------------------------------
+   Seasonal themes
+   ----------------------------------------------------------------------
+   js/theme.js stamps data-theme on <html> from the current month. Each block
+   only overrides palette tokens — no layout, no new rules — so a theme can
+   never break the interface, and an unknown/absent value simply falls back to
+   the default palette above. */
+
+#titleblock .eyebrow::after {
+  content: var(--theme-mark);
+  margin-left: 6px;
+}
+
+/* September — amor y amistad. Warm pinks over a plum shell. */
+:root[data-theme="amistad"] {
+  --amber: #ff7aa2;
+  --amber-rgb: 255, 122, 162;
+  --amber-dim: #b04a6c;
+  --paper-dim: #bda6b4;
+  --bg-hi: #5a3350;
+  --bg-mid: #2a1826;
+  --bg-lo: #170d15;
+  --panel-hi: #45283e;
+  --panel-lo: #2c1a28;
+  --edge: #150c13;
+  --shadow: #120a10;
+  --stage-bg: #2a1826;
+  --stage-inset: #1c1019;
+  --ctl-hi: #4d2e45;
+  --ctl-lo: #321d2d;
+  --rule: #45283e;
+  --cta-shadow: #8c3454;
+  --theme-mark: "💘";
+}
+
+/* October — Halloween. Pumpkin orange over near-black purple. */
+:root[data-theme="halloween"] {
+  --amber: #ff8a1f;
+  --amber-rgb: 255, 138, 31;
+  --amber-dim: #a34f06;
+  --purple: #5b2c86;
+  --purple-lt: #9a63c9;
+  --paper-dim: #a2948f;
+  --bg-hi: #4a2b5c;
+  --bg-mid: #1d1224;
+  --bg-lo: #0d0812;
+  --panel-hi: #3a2448;
+  --panel-lo: #241630;
+  --edge: #100a16;
+  --shadow: #0b0710;
+  --stage-bg: #1d1224;
+  --stage-inset: #150d1c;
+  --ctl-hi: #452a55;
+  --ctl-lo: #291a35;
+  --rule: #3a2448;
+  --cta-shadow: #8a3f05;
+  --theme-mark: "🎃";
+}
+
+/* December — Navidad. Gold accent over pine green, red as the danger tone. */
+:root[data-theme="navidad"] {
+  --amber: #f5cf5f;
+  --amber-rgb: 245, 207, 95;
+  --amber-dim: #9c7c1c;
+  --danger: #d8332c;
+  --paper-dim: #a3b0a4;
+  --bg-hi: #2f5a3f;
+  --bg-mid: #13251a;
+  --bg-lo: #0a1410;
+  --panel-hi: #23452f;
+  --panel-lo: #16291d;
+  --edge: #0a140e;
+  --shadow: #07100a;
+  --stage-bg: #13251a;
+  --stage-inset: #0e1c13;
+  --ctl-hi: #2b5238;
+  --ctl-lo: #1a3122;
+  --rule: #23452f;
+  --cta-shadow: #7a5f13;
+  --theme-mark: "🎄";
 }
