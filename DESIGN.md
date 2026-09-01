@@ -121,7 +121,11 @@ The interface reskins itself by month: September is *amor y amistad* (pinks over
 
 The script is loaded from `<head>` next to the stylesheet rather than imported by `main.js`, so the palette is applied before the first paint instead of flashing the default one. `?theme=halloween` (or `amistad` / `navidad`) forces a theme for review out of season.
 
-Only the HTML/CSS chrome is themed — the canvas art is not. The game's own sprites and backgrounds are photographic and stage-driven (see Background), and tinting them per month would fight that.
+**Inside the canvas.** `js/seasonal.js` is the world-side counterpart, reading the same `activeTheme()` so the chrome and the game can never disagree about the month. It contributes three things to `render.js`: a colour wash, sky props, and foreground particles — a moon and bats in October, rising hearts in September, falling snow in December. The wash is drawn straight after the background so it tints the scenery, and *before* the obstacles so it never dulls the things the player has to read; the particles are drawn late, in front of the runner, because the depth only works if they occlude.
+
+This layer is procedural rather than art. A seasonal photographic set would be one ~150-450KB background per month per stage, mostly never seen, and it would collide with the score-driven progression in `BACKGROUNDS` — a December run past 5000 points can only have one background. An overlay composites onto whichever stage is current, so the two systems stay independent.
+
+It also holds no state. Particle positions are derived from `performance.now()` and a seed table built once at load, so there is nothing to update, nothing to reset between runs, and no per-frame allocation in the draw path. If you add a theme, add its wash/props here and its palette in the CSS — don't branch on the theme name anywhere else.
 
 ## Extending
 

@@ -18,6 +18,11 @@ import {
 import { starBobPhase } from "./entities.js";
 import { drawObstacle } from "./obstacles/index.js";
 import { roundRect } from "./obstacles/utils.js";
+import {
+  drawSeasonalBackdrop,
+  drawSeasonalForeground,
+  groundLineColor,
+} from "./seasonal.js";
 
 // How far ahead of its own minScore the next background starts downloading.
 // At running speed this is roughly ten seconds of lead, enough for a few
@@ -92,7 +97,7 @@ function drawBackground() {
   groundGrad.addColorStop(1, "#181e20");
   ctx.fillStyle = groundGrad;
   ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
-  ctx.strokeStyle = "rgba(232,171,58,0.55)";
+  ctx.strokeStyle = groundLineColor();
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(0, GROUND_Y + 1.5);
@@ -315,6 +320,9 @@ export function draw() {
     ctx.translate((Math.random() - 0.5) * m, (Math.random() - 0.5) * m * 0.5);
   }
   drawBackground();
+  // Seasonal wash + sky props: after the scenery so they tint it, before the
+  // obstacles so they never tint those.
+  drawSeasonalBackdrop();
 
   for (const o of G.obstacles) {
     const ox = o.worldX - G.scrollX;
@@ -360,6 +368,8 @@ export function draw() {
     ctx.fillText("+1 LIFE", W / 2, 60);
     ctx.restore();
   }
+
+  drawSeasonalForeground();
 
   if (G.hitFlash > 0) {
     // full-screen red pulse + a "-1" popup, so a hit is unmistakable even

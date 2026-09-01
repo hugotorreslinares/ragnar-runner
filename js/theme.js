@@ -32,3 +32,11 @@ if (forced && Object.values(THEME_BY_MONTH).includes(forced)) {
 } else {
   applySeasonalTheme();
 }
+
+// The canvas layer needs the same answer the CSS is using, and asking the DOM
+// keeps this a single source of truth: `?theme=` overrides and the month
+// mapping are both already baked into the attribute by the time anything
+// renders.
+export function activeTheme() {
+  return document.documentElement.dataset.theme || null;
+}
