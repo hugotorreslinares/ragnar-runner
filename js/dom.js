@@ -14,6 +14,7 @@ export const starsMini = document.getElementById('starsMini');
 export const speedVal = document.getElementById('speedVal');
 export const speedMini = document.getElementById('speedMini');
 export const startOverlay = document.getElementById('startOverlay');
+export const seasonBadge = document.getElementById('seasonBadge');
 export const overOverlay = document.getElementById('overOverlay');
 export const overText = document.getElementById('overText');
 export const startBtn = document.getElementById('startBtn');

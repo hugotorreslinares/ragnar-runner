@@ -1,6 +1,6 @@
 // Bootstrap — wires DOM events to the game/leaderboard/input modules and
 // kicks off the render loop. Nothing here owns game logic itself.
-import { canvas, lbStartList, lbOverList, lbSubmitBtn, lbNameInput, startBtn, restartBtn, pauseBtn, resumeBtn, muteBtn, isFormControlFocused } from './dom.js';
+import { canvas, lbStartList, lbOverList, lbSubmitBtn, lbNameInput, startBtn, restartBtn, pauseBtn, resumeBtn, muteBtn, seasonBadge, isFormControlFocused } from './dom.js';
 import { PHASE, phase, G } from './state.js';
 import { startGame, togglePause, loop } from './game.js';
 import { queueJump } from './input.js';
@@ -8,6 +8,7 @@ import { loadLeaderboardInto, handleSubmitScore } from './leaderboard.js';
 import { toggleMute, isMuted } from './audio.js';
 import './admin.js'; // no-op unless the URL has ?admin
 import './install.js'; // "Install app" button — no-op outside Chromium
+import { renderSeasonBadge } from './theme.js'; // the theme itself is applied from <head>
 
 // The service worker exists so Chromium considers the game installable (see
 // sw.js). Registration is deliberately late and failure-tolerant: nothing in
@@ -22,6 +23,8 @@ try {
   const savedName = localStorage.getItem('ragnarName');
   if (savedName) lbNameInput.value = savedName;
 } catch (e) {}
+
+renderSeasonBadge(seasonBadge);
 
 startBtn.addEventListener('click', startGame);
 restartBtn.addEventListener('click', startGame);

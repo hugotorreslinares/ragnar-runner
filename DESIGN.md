@@ -121,6 +121,10 @@ The interface reskins itself by month: September is *amor y amistad* (pinks over
 
 The script is loaded from `<head>` next to the stylesheet rather than imported by `main.js`, so the palette is applied before the first paint instead of flashing the default one. `?theme=halloween` (or `amistad` / `navidad`) forces a theme for review out of season.
 
+The start screen names the month in a badge ("🎃 October Edition · Halloween"), because a player who opens the game and finds it pink or orange should not have to guess why. `renderSeasonBadge()` fills it from `main.js` — not at import time, since the module runs from `<head>` and the start screen does not exist yet — and leaves it hidden in months with no theme. The label follows the *theme*, not the clock: with `?theme=halloween` forced in September the badge has to say October, or it explains the wrong thing.
+
+The month table in `js/theme.js` is keyed by theme and holds everything about it — the triggering month, the glyph, the badge text — so adding or retiring a season is one entry, not edits scattered across three files.
+
 **Inside the canvas.** `js/seasonal.js` is the world-side counterpart, reading the same `activeTheme()` so the chrome and the game can never disagree about the month. It contributes three things to `render.js`: a colour wash, sky props, and foreground particles — a moon and bats in October, rising hearts in September, falling snow in December. The wash is drawn straight after the background so it tints the scenery, and *before* the obstacles so it never dulls the things the player has to read; the particles are drawn late, in front of the runner, because the depth only works if they occlude.
 
 This layer is procedural rather than art. A seasonal photographic set would be one ~150-450KB background per month per stage, mostly never seen, and it would collide with the score-driven progression in `BACKGROUNDS` — a December run past 5000 points can only have one background. An overlay composites onto whichever stage is current, so the two systems stay independent.

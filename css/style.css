@@ -641,6 +641,22 @@ button.cta.small {
   margin-left: 6px;
 }
 
+/* Start-screen badge naming the month, so a player who suddenly finds the
+   game pink or orange knows why. Hidden by js/theme.js in untouched months. */
+.season-badge {
+  font-family: "JetBrains Mono", monospace;
+  font-size: clamp(9px, 2.2vw, 11px);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--amber);
+  background: rgba(var(--amber-rgb), 0.1);
+  border: 1px solid rgba(var(--amber-rgb), 0.4);
+  border-radius: 999px;
+  padding: 4px 12px;
+  margin-top: -4px;
+  white-space: nowrap;
+}
+
 /* September — amor y amistad. Warm pinks over a plum shell. */
 :root[data-theme="amistad"] {
   --amber: #ff7aa2;
