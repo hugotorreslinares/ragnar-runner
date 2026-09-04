@@ -8,13 +8,12 @@
 // that players actually notice the theme instead of catching a three-day
 // window. Months with no theme fall through to the default palette.
 //
-// One table, keyed by theme, is the whole configuration: the month that
-// triggers it and the badge the start screen shows so players know why the
-// game suddenly looks different.
+// Which month triggers which theme, and nothing else — the badge's wording
+// lives with the rest of the copy, under `season` in the game's strings file.
 const THEMES = {
-  amistad: { month: 8, mark: '💘', label: 'September Edition', note: 'Amor y amistad' },
-  halloween: { month: 9, mark: '🎃', label: 'October Edition', note: 'Halloween' },
-  navidad: { month: 11, mark: '🎄', label: 'December Edition', note: 'Navidad' },
+  amistad: { month: 8 },
+  halloween: { month: 9 },
+  navidad: { month: 11 },
 };
 
 export function themeForMonth(month) {
@@ -39,16 +38,25 @@ export function activeTheme() {
 }
 
 // Called from main.js rather than run here: this module is loaded from <head>
-// so the palette beats the first paint, which means the start screen does not
-// exist yet at that point.
+// so the palette beats the first paint, which means neither the start screen
+// nor the strings file exist yet at that point.
+//
+// The translator is passed in rather than imported for the same reason. This
+// module must stay dependency-free: importing js/strings.js would drag the
+// whole module graph — including js/dom.js, which grabs the canvas and its
+// 2D context — into <head>, where the canvas has not been parsed yet.
 //
 // The label follows the *theme*, not the clock — with `?theme=halloween` in
 // September the badge has to say October, or it would explain the wrong thing.
-export function renderSeasonBadge(el) {
+export function renderSeasonBadge(el, t) {
   if (!el) return;
-  const def = THEMES[activeTheme()];
-  if (!def) return; // no theme this month: the badge stays hidden
-  el.textContent = `${def.mark} ${def.label} · ${def.note}`;
+  const theme = activeTheme();
+  if (!THEMES[theme]) return; // no theme this month: the badge stays hidden
+  el.textContent = t('season.badgeFormat', {
+    mark: t(`season.${theme}.mark`),
+    label: t(`season.${theme}.label`),
+    note: t(`season.${theme}.note`),
+  });
   el.classList.remove('hidden');
 }
 

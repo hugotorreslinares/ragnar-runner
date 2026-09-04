@@ -19,6 +19,7 @@ import {
 import { starBobPhase } from "./entities.js";
 import { drawObstacle } from "./obstacles/index.js";
 import { GAME } from "./active-game.js";
+import { t } from "./strings.js";
 
 // The game supplies the things that are about *this* world — the collectible,
 // the debris, the stand-in runner, the road's colours. The renderer decides
@@ -221,7 +222,7 @@ export function draw() {
     ctx.fillStyle = PAL.accent;
     ctx.font = "bold 18px monospace";
     ctx.textAlign = "center";
-    ctx.fillText("+1", px, p.y);
+    ctx.fillText(t("canvas.starPopup"), px, p.y);
     ctx.restore();
   }
 
@@ -231,7 +232,7 @@ export function draw() {
     ctx.fillStyle = PAL.accent;
     ctx.font = "bold 22px monospace";
     ctx.textAlign = "center";
-    ctx.fillText("+1 LIFE", W / 2, 60);
+    ctx.fillText(t("canvas.lifeGained"), W / 2, 60);
     ctx.restore();
   }
 
@@ -247,14 +248,14 @@ export function draw() {
     ctx.fillStyle = PAL.text;
     ctx.font = "bold 26px monospace";
     ctx.textAlign = "center";
-    ctx.fillText("-1", G.player.screenX, GROUND_Y + G.player.y - 170);
+    ctx.fillText(t("canvas.lifeLost"), G.player.screenX, GROUND_Y + G.player.y - 170);
     ctx.restore();
   }
 
   if (!allLoaded) {
     ctx.fillStyle = PAL.textDim;
     ctx.font = "14px monospace";
-    ctx.fillText("loading sprites…", 20, 30);
+    ctx.fillText(t("canvas.loadingSprites"), 20, 30);
   }
   ctx.restore();
 }

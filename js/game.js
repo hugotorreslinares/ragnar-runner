@@ -9,7 +9,7 @@ import { keys, hasQueuedJump, clearQueuedJump, clearInput } from './input.js';
 import { spawnObstacle, spawnStar, collectStar, launchDebris, launchGlass, hitPlayer, starBobPhase } from './entities.js';
 import { draw } from './render.js';
 import { OBSTACLE_TYPES } from './obstacles/index.js';
-import { GAME } from './active-game.js';
+import { t } from './strings.js';
 import { loadLeaderboardInto, resetSubmitUI } from './leaderboard.js';
 import { startMusic, stopMusic, pauseMusic, resumeMusic, playHit } from './audio.js';
 
@@ -210,9 +210,9 @@ export function endGame(){
   G.player.invuln = 0;
   if (G.score > BEST){
     setBest(G.score);
-    overText.textContent = GAME.copy.newBest(G.score);
+    overText.textContent = t('over.newBest', { score: G.score });
   } else {
-    overText.textContent = GAME.copy.gameOver(G.score);
+    overText.textContent = t('over.gameOver', { score: G.score });
   }
   overOverlay.classList.remove('hidden');
   resetSubmitUI();

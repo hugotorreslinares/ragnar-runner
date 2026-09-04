@@ -10,6 +10,26 @@ import './admin.js'; // no-op unless the URL has ?admin
 import './install.js'; // "Install app" button — no-op outside Chromium
 import { renderSeasonBadge } from './theme.js'; // the theme itself is applied from <head>
 import { GAME } from './active-game.js';
+import { loadStrings, applyStrings, t } from './strings.js';
+
+// Copy first: the markup ships with empty elements carrying data-text keys,
+// so nothing readable is on screen until this resolves. Top-level await in a
+// module delays the rest of this file, which is exactly what we want — every
+// line below may render text.
+//
+// A failure here is fatal to the UI, so it is surfaced rather than swallowed:
+// the error banner is already wired up in index.html.
+try {
+  await loadStrings();
+  applyStrings();
+} catch (err) {
+  const banner = document.getElementById('errBanner');
+  if (banner) {
+    banner.textContent = 'Could not load the game text: ' + err.message;
+    banner.classList.remove('hidden');
+  }
+  throw err;
+}
 
 // The service worker exists so Chromium considers the game installable (see
 // sw.js). Registration is deliberately late and failure-tolerant: nothing in
@@ -25,7 +45,7 @@ try {
   if (savedName) lbNameInput.value = savedName;
 } catch (e) {}
 
-renderSeasonBadge(seasonBadge);
+renderSeasonBadge(seasonBadge, t);
 
 startBtn.addEventListener('click', startGame);
 restartBtn.addEventListener('click', startGame);
@@ -72,7 +92,7 @@ function renderMuteBtn(){
   const m = isMuted();
   muteBtn.classList.toggle('muted', m);
   muteBtn.setAttribute('aria-pressed', String(m));
-  muteBtn.setAttribute('aria-label', m ? 'Unmute music' : 'Mute music');
+  muteBtn.setAttribute('aria-label', t(m ? 'controls.unmuteLabel' : 'controls.muteLabel'));
 }
 renderMuteBtn();
 muteBtn.addEventListener('click', () => { toggleMute(); renderMuteBtn(); });

@@ -73,29 +73,29 @@
         <div style="display: flex; align-items: center; gap: 10px">
           <div class="rivet"></div>
           <div id="titleblock">
-            <div class="eyebrow">2026 edition</div>
-            <h1>Escape <span>from Bogotá</span></h1>
+            <div class="eyebrow" data-text="header.eyebrow"></div>
+            <h1><span data-text="header.titleLead"></span> <span data-text="header.titleAccent"></span></h1>
           </div>
         </div>
         <div id="hud" >
           <div class="hudstat">
-            <label>Distance</label>
+            <label data-text="hud.distance"></label>
             <div class="val" id="scoreVal">0</div>
           </div>
           <div class="hudstat">
-            <label>Best</label>
+            <label data-text="hud.best"></label>
             <div class="val" id="bestVal">0</div>
           </div>
           <div class="hudstat">
-            <label>Lives</label>
+            <label data-text="hud.lives"></label>
             <div id="lives"></div>
           </div>
           <div class="hudstat">
-            <label>Stars</label>
+            <label data-text="hud.stars"></label>
             <div class="val" id="starsVal">0/10</div>
           </div>
           <div class="hudstat">
-            <label>Speed</label>
+            <label data-text="hud.speed"></label>
             <div class="val" id="speedVal">0.0</div>
           </div>
         </div>
@@ -147,32 +147,27 @@
         </div>
 
         <div class="overlay" id="startOverlay">
-          <h2>ESCAPE FROM <span>BOGOTÁ</span></h2>
+          <h2><span data-text="start.titleLead"></span> <span data-text="start.titleAccent"></span></h2>
           <!-- Filled by js/theme.js; stays hidden in months with no theme. -->
           <div class="season-badge hidden" id="seasonBadge"></div>
-          <p>
-            GET OUT OF BOGOTÁ! Traffic is a nightmare. There's a bollard in the
-            middle of the road. A trash can blocking the way. Three potholes
-            ahead. Don't ask. RUN.
-          </p>
+          <p data-text="start.intro"></p>
           <div class="initial-image" style="border-radius: 10px"></div>
 
          
           
           <div class="keys">
-            <div class="key"><b>←</b> slow / retreat</div>
-            <div class="key"><b>→</b> run / speed up</div>
-            <div class="key"><b>↑ / SPACE</b> jump</div>
-
-            <div class="key"><b>ESC</b> pause</div>
+            <div class="key"><b>←</b> <span data-text="start.keyLeft"></span></div>
+            <div class="key"><b>→</b> <span data-text="start.keyRight"></span></div>
+            <div class="key"><b>↑ / SPACE</b> <span data-text="start.keyJump"></span></div>
+            <div class="key"><b>ESC</b> <span data-text="start.keyPause"></span></div>
           </div>
-          <button class="cta" id="startBtn">Start Running</button>
+          <button class="cta" id="startBtn" data-text="start.startButton"></button>
           <!-- Hidden until Chromium says the game is installable (see
                js/install.js). Safari never fires that event, so there the
                button never appears. -->
-          <button class="cta small hidden" id="installBtn">⤓ Install app</button>
+          <button class="cta small hidden" id="installBtn" data-text="start.installButton"></button>
           <div class="lb" id="lbStart">
-            <div class="lb-title">🌍 Global Top 5</div>
+            <div class="lb-title" data-text="leaderboard.titleStart"></div>
             <div class="lb-list" id="lbStartList">
               <div class="lb-status">Loading…</div>
             </div>
@@ -192,29 +187,24 @@
             </div>
 
             <div class="right-failed">
-              <h2>YOU DIDN'T MAKE IT <span>OUT</span></h2>
-              <p id="overText">
-                Bogotá got you.<br />
-
-                Too many obstacles. Too many potholes. And definitely too many
-                bollards.
-              </p>
+              <h2><span data-text="over.titleLead"></span> <span data-text="over.titleAccent"></span></h2>
+              <p id="overText"></p>
               <div class="lb-submit" id="lbSubmit">
                 <input
                   type="text"
                   id="lbNameInput"
                   maxlength="12"
-                  placeholder="YOUR NAME"
+                  data-text-placeholder="over.namePlaceholder"
                   autocomplete="off"
                   autocapitalize="characters"
                 />
-                <button class="cta small" id="lbSubmitBtn">Submit Score</button>
+                <button class="cta small" id="lbSubmitBtn" data-text="leaderboard.submitButton"></button>
               </div>
-              <button class="cta" id="restartBtn">TRY AGAIN</button>
+              <button class="cta" id="restartBtn" data-text="over.restartButton"></button>
             </div>
           </div>
           <div class="lb" id="lbOver">
-            <div class="lb-title">🌍 Global Top 20</div>
+            <div class="lb-title" data-text="leaderboard.titleOver"></div>
             <div class="lb-list" id="lbOverList">
               <div class="lb-status">Loading…</div>
             </div>
@@ -222,15 +212,13 @@
         </div>
 
         <div class="overlay hidden" id="pauseOverlay">
-          <h2>Game <span>Paused</span></h2>
-          <p>
-            Take a breather. Press <b>ESC</b> or hit resume to keep running.
-          </p>
-          <button class="cta" id="resumeBtn">Resume</button>
+          <h2><span data-text="pause.titleLead"></span> <span data-text="pause.titleAccent"></span></h2>
+          <p data-text="pause.body"></p>
+          <button class="cta" id="resumeBtn" data-text="pause.resumeButton"></button>
         </div>
 
-        <button id="pauseBtn" aria-label="Pause">❚❚</button>
-        <button id="muteBtn" aria-label="Mute music" aria-pressed="false">
+        <button id="pauseBtn" data-text-aria-label="controls.pauseLabel">❚❚</button>
+        <button id="muteBtn" data-text-aria-label="controls.muteLabel" aria-pressed="false">
           ♪
         </button>
       </div>
@@ -240,13 +228,10 @@
           <div class="tbtn" id="btnLeft">◀</div>
           <div class="tbtn" id="btnRight">▶</div>
         </div>
-        <div class="tbtn jump" id="btnJump">JUMP</div>
+        <div class="tbtn jump" id="btnJump" data-text="controls.touchJump"></div>
       </div>
 
-      <div id="footer-note">
-        Character art: Hugo Torres · Arrow keys or on-screen controls · Space
-        also jumps
-      </div>
+      <div id="footer-note" data-text="footer"></div>
     </div>
 
     <script type="module" src="js/main.js"></script>

@@ -1,0 +1,83 @@
+{
+  "_comment": "Every word the game shows. Edit this file to change any text; no JavaScript involved. Keys are referenced from index.html via data-text attributes and from code via t('some.key'). {braces} are values the game fills in at runtime — keep them spelled exactly as they are, but they can be moved around inside the sentence or dropped if you don't want them shown.",
+
+  "header": {
+    "eyebrow": "2026 edition",
+    "titleLead": "Escape",
+    "titleAccent": "from Bogotá"
+  },
+
+  "hud": {
+    "distance": "Distance",
+    "best": "Best",
+    "lives": "Lives",
+    "stars": "Stars",
+    "speed": "Speed",
+    "starsFormat": "★ {current}/{total}",
+    "speedFormat": "⚡ {value}"
+  },
+
+  "start": {
+    "titleLead": "ESCAPE FROM",
+    "titleAccent": "BOGOTÁ",
+    "intro": "GET OUT OF BOGOTÁ! Traffic is a nightmare. There's a bollard in the middle of the road. A trash can blocking the way. Three potholes ahead. Don't ask. RUN.",
+    "keyLeft": "slow / retreat",
+    "keyRight": "run / speed up",
+    "keyJump": "jump",
+    "keyPause": "pause",
+    "startButton": "Start Running",
+    "installButton": "⤓ Install app"
+  },
+
+  "over": {
+    "titleLead": "YOU DIDN'T MAKE IT",
+    "titleAccent": "OUT",
+    "newBest": "New best! {score} meters away from the center of Bogotá.",
+    "gameOver": "You made {score}. Bogotá got you. Too many obstacles. Too many potholes. And definitely too many bollards.",
+    "namePlaceholder": "YOUR NAME",
+    "restartButton": "TRY AGAIN"
+  },
+
+  "pause": {
+    "titleLead": "Game",
+    "titleAccent": "Paused",
+    "body": "Take a breather. Press ESC or hit resume to keep running.",
+    "resumeButton": "Resume"
+  },
+
+  "leaderboard": {
+    "titleStart": "🌍 Global Top 5",
+    "titleOver": "🌍 Global Top 20",
+    "loading": "Loading…",
+    "empty": "No scores yet — be the first.",
+    "unreachable": "Couldn't reach the leaderboard.",
+    "anonymous": "ANON",
+    "submitButton": "Submit Score",
+    "submitting": "Submitting…",
+    "submitted": "Submitted ✓",
+    "submitFailed": "Couldn't submit — retry"
+  },
+
+  "canvas": {
+    "starPopup": "+1",
+    "lifeGained": "+1 LIFE",
+    "lifeLost": "-1",
+    "loadingSprites": "loading sprites…"
+  },
+
+  "controls": {
+    "pauseLabel": "Pause",
+    "muteLabel": "Mute music",
+    "unmuteLabel": "Unmute music",
+    "touchJump": "JUMP"
+  },
+
+  "season": {
+    "amistad": { "mark": "💘", "label": "September Edition", "note": "Amor y amistad" },
+    "halloween": { "mark": "🎃", "label": "October Edition", "note": "Halloween" },
+    "navidad": { "mark": "🎄", "label": "December Edition", "note": "Navidad" },
+    "badgeFormat": "{mark} {label} · {note}"
+  },
+
+  "footer": "Character art: Hugo Torres · Arrow keys or on-screen controls · Space also jumps"
+}

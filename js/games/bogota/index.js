@@ -89,6 +89,10 @@ export const GAME = {
     { src: "sprites/background-sunset.webp", minScore: 5000, roadSrcY: 641 },
   ],
 
+  // Every word the game shows. Fetched at startup by js/strings.js — the
+  // path is relative to the page, not to this module.
+  strings: "js/games/bogota/strings.json",
+
   obstacles: OBSTACLES,
 
   art: {
@@ -128,12 +132,4 @@ export const GAME = {
     "images/ragnar-tmlenio.webp",
   ],
 
-  copy: {
-    newBest: (score) =>
-      "New best! " + score + " meters away from  the center of Bogotá.",
-    gameOver: (score) =>
-      "You made " +
-      score +
-      " Bogotá got you. Too many obstacles Too many potholes And definitely too many bollards.",
-  },
 };

@@ -30,10 +30,12 @@ css/style.css        all styles
 js/active-game.js      which game the engine runs — the one line you change
 js/games/bogota/index.js       the content pack: art, copy, audio, scenery, feel
 js/games/bogota/art.js         collectible, debris, stand-in runner, road colours
+js/games/bogota/strings.json   every word the game shows — change text here, only here
 js/games/bogota/obstacles/     this game's obstacle table + one draw module per type
 
 —— the engine ——
 js/config.js          the engine's view of the active game (stable constant names)
+js/strings.js         loads that JSON and fills the markup from it (t / applyStrings)
 js/tuning.js          the live-tunable subset of those (TUNE) — what gameplay code reads
 js/admin.js           the ?admin tuning panel; does nothing without the URL param
 js/dom.js             DOM element references — the only file that queries the DOM by id
@@ -52,15 +54,23 @@ js/theme.js            picks the seasonal interface theme from the current month
 js/seasonal.js         the canvas side of that theme (wash, moon/bats, hearts, snow)
 ```
 
+## Changing any text
+
+All copy — headings, buttons, the intro, HUD labels, leaderboard statuses, the game-over lines, the seasonal badge, even the `+1` that pops off a collected star — lives in `js/games/bogota/strings.json`. Edit that file and reload; no JavaScript is involved and there is nothing to rebuild.
+
+The markup carries keys instead of words (`<button data-text="start.startButton">`), and code asks for them by the same key (`t('over.newBest', { score })`). `{score}`-style placeholders are filled at runtime: keep them spelled as they are, but they can be moved or dropped. A key that doesn't exist renders as the key itself and warns in the console — a visible `over.newBest` beats a silently blank button.
+
+Two things stay in `index.html` on purpose: the `<title>` and the `<meta>`/Open Graph description. Search engines and link previews read those before any script runs, so moving them into JSON would cost the site its search listing and its WhatsApp preview for nothing.
+
 ## Making a different game
 
 A gorilla in the jungle or a skater downtown is the same engine with a different pack:
 
 1. Copy `js/games/bogota/` to `js/games/<yourgame>/`.
 2. Point `js/active-game.js` at it.
-3. Replace the assets it names (spritesheet, backgrounds, audio, hero shots) and the obstacle table. An obstacle can be a picture — `image:` plus a hitbox — so a new set does not mean writing canvas code.
+3. Replace the assets it names (spritesheet, backgrounds, audio, hero shots), the obstacle table, and `strings.json`. An obstacle can be a picture — `image:` plus a hitbox — so a new set does not mean writing canvas code.
 4. Give it its own `storagePrefix` so the two games don't share saved best scores, and its own leaderboard table.
-5. Edit the copy in `index.html`, the palette in `css/style.css`, and `manifest.json`. Those are the shell, not something the engine reads.
+5. Edit the palette in `css/style.css`, the head metadata in `index.html`, and `manifest.json`. Those are the shell, not something the engine reads.
 
 Nothing under `js/` outside `js/games/` should need to change. If it does, that is a leak worth fixing rather than working around.
 

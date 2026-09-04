@@ -5,6 +5,7 @@
 import { livesWrap, livesMiniWrap, starsVal, starsMini, speedVal, speedMini, scoreVal, bestVal } from './dom.js';
 import { TUNE } from './tuning.js';
 import { GAME } from './active-game.js';
+import { t } from './strings.js';
 import { PLAYER_SCREEN_X } from './config.js';
 import { keys } from './input.js';
 
@@ -101,14 +102,15 @@ export function updateSpeedUI(){
   const maxed = G.baseSpeed >= TUNE.BASE_SPEED_CAP - 0.05 && !keys.right;
   speedVal.textContent = txt;
   speedVal.style.color = maxed ? 'var(--danger)' : '';
-  speedMini.textContent = '⚡ ' + txt;
+  speedMini.textContent = t('hud.speedFormat', { value: txt });
   speedMini.classList.toggle('maxed', maxed);
 }
 
 export function updateStarsUI(){
-  const txt = G.starsCollected + '/' + TUNE.STARS_PER_LIFE;
-  starsVal.textContent = txt;
-  starsMini.textContent = '★ ' + txt;
+  starsVal.textContent = G.starsCollected + '/' + TUNE.STARS_PER_LIFE;
+  starsMini.textContent = t('hud.starsFormat', {
+    current: G.starsCollected, total: TUNE.STARS_PER_LIFE,
+  });
 }
 
 export function updateLivesUI(){

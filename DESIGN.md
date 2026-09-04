@@ -126,7 +126,17 @@ Two places deserve their own note:
 
 `storagePrefix` is worth care: it prefixes every `localStorage` key (best score, player name, mute). Bogotá's stays `"ragnar"` because that is what players' saved best scores are already filed under — renaming it would silently reset every existing player. A second game must pick a different one, or the two will overwrite each other on the same origin.
 
-What is *not* engine-driven, by choice: `index.html`'s copy, the CSS palette, `manifest.json`, and the service worker's cache name. Those are the shell around the canvas, they are edited by hand per game, and pushing them through a config object would buy nothing but indirection.
+**All copy lives in one JSON file.** `GAME.strings` points at `strings.json` in the pack; `js/strings.js` fetches it once at startup and exposes `t(key, vars)` plus `applyStrings()`, which fills every `[data-text]` element and `data-text-<attribute>` in the markup. So the HTML ships keys, not words, and changing any text is editing one file with no JavaScript and no rebuild.
+
+Details worth keeping:
+
+- It is fetched, not imported. JSON modules still need import attributes that not every target browser supports, and a fetch also means the copy can be corrected on a deployed site directly — there is no build step to undo.
+- `main.js` does the load in a **top-level await** before anything else runs, because every line below it may render text. The markup is empty until that resolves, which is why a failure is surfaced in the error banner and rethrown rather than swallowed: a silent failure here would leave a wordless page.
+- Text is written with `textContent`, never `innerHTML`. That is why headings are split into two spans (`start.titleLead` + `start.titleAccent`) instead of embedding a `<span>` in the JSON — copy is data, and data never becomes markup.
+- `js/theme.js` receives `t` as an argument instead of importing it. That module is loaded from `<head>` and **must stay dependency-free**: importing `js/strings.js` would pull the whole graph — including `js/dom.js`, which grabs the canvas and its 2D context — into a point in the parse where the canvas does not exist yet.
+- The `<title>` and the `<meta>`/Open Graph description deliberately stay in the HTML. Crawlers and link unfurlers read them before any script runs; moving them into JSON would break the site's search listing and its share previews to buy nothing.
+
+What is *not* engine-driven, by choice: the CSS palette, `manifest.json`, and the service worker's cache name. Those are the shell around the canvas, they are edited by hand per game, and pushing them through a config object would buy nothing but indirection.
 
 ## Seasonal themes
 

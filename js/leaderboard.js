@@ -5,6 +5,7 @@
 import { lbNameInput, lbSubmitBtn, lbOverList, lbStartList } from './dom.js';
 
 import { GAME } from './active-game.js';
+import { t } from './strings.js';
 
 const { url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY, table: TABLE } = GAME.leaderboard;
 
@@ -39,24 +40,24 @@ function escapeHtml(s){
 
 function renderLeaderboard(container, rows){
   if (!rows || rows.length === 0){
-    container.innerHTML = '<div class="lb-status">No scores yet — be the first.</div>';
+    container.innerHTML = '<div class="lb-status">' + escapeHtml(t('leaderboard.empty')) + '</div>';
     return;
   }
   container.innerHTML = rows.map((r, i) => {
     const safeScore = Number.isFinite(Number(r.score)) ? Number(r.score) : 0;
     return '<div class="lb-row">' +
       '<span class="lb-rank">' + (i+1) + '</span>' +
-      '<span class="lb-name">' + escapeHtml(r.player_name || 'ANON') + '</span>' +
+      '<span class="lb-name">' + escapeHtml(r.player_name || t('leaderboard.anonymous')) + '</span>' +
       '<span class="lb-score">' + safeScore + '</span>' +
     '</div>';
   }).join('');
 }
 
 export function loadLeaderboardInto(container, limit){
-  container.innerHTML = '<div class="lb-status">Loading…</div>';
+  container.innerHTML = '<div class="lb-status">' + escapeHtml(t('leaderboard.loading')) + '</div>';
   fetchLeaderboard(limit)
     .then(rows => renderLeaderboard(container, rows))
-    .catch(() => { container.innerHTML = '<div class="lb-status">Couldn\'t reach the leaderboard.</div>'; });
+    .catch(() => { container.innerHTML = '<div class="lb-status">' + escapeHtml(t('leaderboard.unreachable')) + '</div>'; });
 }
 
 // ---------- Submit-score UI flow ----------
@@ -65,7 +66,7 @@ let scoreSubmitted = false;
 export function resetSubmitUI(){
   scoreSubmitted = false;
   lbSubmitBtn.disabled = false;
-  lbSubmitBtn.textContent = 'Submit Score';
+  lbSubmitBtn.textContent = t('leaderboard.submitButton');
 }
 
 export async function handleSubmitScore(score){
@@ -78,14 +79,14 @@ export async function handleSubmitScore(score){
 
   scoreSubmitted = true;
   lbSubmitBtn.disabled = true;
-  lbSubmitBtn.textContent = 'Submitting…';
+  lbSubmitBtn.textContent = t('leaderboard.submitting');
   try {
     await submitScoreToLeaderboard(name, score);
-    lbSubmitBtn.textContent = 'Submitted ✓';
+    lbSubmitBtn.textContent = t('leaderboard.submitted');
     loadLeaderboardInto(lbOverList, 20);
     loadLeaderboardInto(lbStartList, 5);
   } catch(e){
-    lbSubmitBtn.textContent = 'Couldn\'t submit — retry';
+    lbSubmitBtn.textContent = t('leaderboard.submitFailed');
     scoreSubmitted = false;
     lbSubmitBtn.disabled = false;
   }
