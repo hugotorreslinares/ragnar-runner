@@ -1,0 +1,83 @@
+{
+  "_comment": "Every word this game shows. Same key set as any other pack — the engine and the markup look these up by name, so a key that exists in one game must exist in all of them.",
+
+  "header": {
+    "eyebrow": "skeleton build",
+    "titleLead": "Kong",
+    "titleAccent": "Run"
+  },
+
+  "hud": {
+    "distance": "Distance",
+    "best": "Best",
+    "lives": "Lives",
+    "stars": "Bananas",
+    "speed": "Speed",
+    "starsFormat": "🍌 {current}/{total}",
+    "speedFormat": "⚡ {value}"
+  },
+
+  "start": {
+    "titleLead": "KONG",
+    "titleAccent": "RUN",
+    "intro": "The canopy is burning and the river is the only way out. Vault the fallen logs, clear the boulders, and don't let the termite mounds stop you. RUN.",
+    "keyLeft": "slow / back off",
+    "keyRight": "run / speed up",
+    "keyJump": "jump",
+    "keyPause": "pause",
+    "startButton": "Start Running",
+    "installButton": "⤓ Install app"
+  },
+
+  "over": {
+    "titleLead": "THE JUNGLE",
+    "titleAccent": "WON",
+    "newBest": "New best! {score} metres deeper into the green.",
+    "gameOver": "You made {score}. The jungle got you. Too many logs, too many boulders, and one termite mound too many.",
+    "namePlaceholder": "YOUR NAME",
+    "restartButton": "TRY AGAIN"
+  },
+
+  "pause": {
+    "titleLead": "Game",
+    "titleAccent": "Paused",
+    "body": "Catch your breath. Press ESC or hit resume to keep running.",
+    "resumeButton": "Resume"
+  },
+
+  "leaderboard": {
+    "titleStart": "🌍 Global Top 5",
+    "titleOver": "🌍 Global Top 20",
+    "loading": "Loading…",
+    "empty": "No scores yet — be the first.",
+    "unreachable": "Couldn't reach the leaderboard.",
+    "anonymous": "ANON",
+    "submitButton": "Submit Score",
+    "submitting": "Submitting…",
+    "submitted": "Submitted ✓",
+    "submitFailed": "Couldn't submit — retry"
+  },
+
+  "canvas": {
+    "starPopup": "+1",
+    "lifeGained": "+1 LIFE",
+    "lifeLost": "-1",
+    "loadingSprites": "loading sprites…"
+  },
+
+  "controls": {
+    "pauseLabel": "Pause",
+    "muteLabel": "Mute music",
+    "unmuteLabel": "Unmute music",
+    "touchJump": "JUMP"
+  },
+
+  "season": {
+    "amistad": { "mark": "💘", "label": "September Edition", "note": "Amor y amistad" },
+    "halloween": { "mark": "🎃", "label": "October Edition", "note": "Halloween" },
+    "navidad": { "mark": "🎄", "label": "December Edition", "note": "Navidad" },
+    "badgeFormat": "{mark} {label} · {note}"
+  },
+
+  "footer": "Skeleton build · Arrow keys or on-screen controls · Space also jumps"
+}

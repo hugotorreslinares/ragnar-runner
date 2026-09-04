@@ -25,7 +25,7 @@ import { t } from "./strings.js";
 // the debris, the stand-in runner, the road's colours. The renderer decides
 // where and when they are drawn; it never decides what they look like.
 const { palette: PAL, star: drawStar, debrisPiece: drawDebrisPiece,
-        fallbackRunner: drawFallbackRunner } = GAME.art;
+        fallbackRunner: drawFallbackRunner, fallbackScenery } = GAME.art;
 import {
   drawSeasonalBackdrop,
   drawSeasonalForeground,
@@ -39,17 +39,20 @@ const BG_PRELOAD_LEAD = 800;
 
 function drawBackground() {
   const idx = backgroundIndexForScore(G.score);
+  // A game may ship no background photos at all (a new pack whose art does
+  // not exist yet), so `entry` is allowed to be undefined — the painted
+  // fallback below covers that case as well as a failed download.
   const entry = backgrounds[idx];
   // Request the one we are about to draw, not just the one after it: a run
   // can arrive at a stage without having passed through its preload window
   // (a restart at a high score, a slow first load), and an unrequested
   // background never loads at all — the sky falls back to a flat gradient.
-  requestBackground(entry);
+  if (entry) requestBackground(entry);
   const next = backgrounds[idx + 1];
   if (next && G.score >= next.def.minScore - BG_PRELOAD_LEAD) requestBackground(next);
 
-  const { img, loaded, failed } = entry;
-  const roadSrcY = entry.def.roadSrcY;
+  const { img, loaded, failed } = entry || {};
+  const roadSrcY = entry && entry.def.roadSrcY;
 
   if (loaded) {
     const scale = GROUND_Y / roadSrcY;
@@ -88,15 +91,9 @@ function drawBackground() {
     skyGrad.addColorStop(1, PAL.fallbackSkyBottom);
     ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, W, GROUND_Y);
-    if (failed) {
-      ctx.fillStyle = PAL.fallbackBuildings;
-      const farOffset = -(G.scrollX * 0.15) % 260;
-      for (let x = farOffset - 260; x < W + 260; x += 260) {
-        ctx.fillRect(x + 20, 140, 90, GROUND_Y - 140);
-        ctx.fillRect(x + 130, 170, 70, GROUND_Y - 170);
-        ctx.fillRect(x + 210, 120, 50, GROUND_Y - 120);
-      }
-    }
+    // Painted scenery instead of the photo. Only once we know no photo is
+    // coming — during the initial decode the plain sky is the quieter wait.
+    if ((!entry || failed) && fallbackScenery) fallbackScenery(G.scrollX, W, GROUND_Y);
   }
 
   // ground

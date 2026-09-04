@@ -37,7 +37,9 @@ export function requestBackground(entry){
   entry.img.src = entry.def.src;
 }
 
-requestBackground(backgrounds[0]);
+// Every run starts on the first one — unless the game ships none, which is
+// allowed (the renderer paints stand-in scenery instead).
+if (backgrounds.length) requestBackground(backgrounds[0]);
 
 // Given an animation name + frame index, compute the source rect on the
 // sheet. This is the one place that turns (row, frameIndex) into

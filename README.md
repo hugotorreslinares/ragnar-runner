@@ -32,6 +32,7 @@ js/games/bogota/index.js       the content pack: art, copy, audio, scenery, feel
 js/games/bogota/art.js         collectible, debris, stand-in runner, road colours
 js/games/bogota/strings.json   every word the game shows — change text here, only here
 js/games/bogota/obstacles/     this game's obstacle table + one draw module per type
+js/games/jungle/               a second game (skeleton) on the same engine — see below
 
 —— the engine ——
 js/config.js          the engine's view of the active game (stable constant names)
@@ -73,6 +74,19 @@ A gorilla in the jungle or a skater downtown is the same engine with a different
 5. Edit the palette in `css/style.css`, the head metadata in `index.html`, and `manifest.json`. Those are the shell, not something the engine reads.
 
 Nothing under `js/` outside `js/games/` should need to change. If it does, that is a leak worth fixing rather than working around.
+
+### The jungle skeleton
+
+`js/games/jungle/` is a working second game — a gorilla running under a burning canopy — and exists to keep the split honest: it runs on the engine with no engine changes at all. Point `js/active-game.js` at it to play it.
+
+It ships **no image and no audio files**. The runner, the canopy, the collectible and all three obstacles are drawn in code, so it is playable before any art exists and each asset can be swapped in one at a time:
+
+- add a spritesheet to `sheet` → the painted runner stops being used
+- add entries to `backgrounds` → the painted canopy stops being called
+- point `audio` at real files → the music starts
+- swap an obstacle's `draw` for `image:` → that obstacle becomes a picture
+
+Its physics and obstacle sizes are copied from Bogotá on purpose. Those numbers came out of jump-window measurements and the obstacle boxes were chosen against them, so changing one without re-measuring the other is how a runner quietly becomes unfair.
 
 Because it uses real `import`/`export` (not just several `<script>` tags sharing global scope), each file only sees what it explicitly imports — no accidental cross-file variable collisions. The trade-off: **ES modules require a local server**, they won't load over `file://`. See [Local dev](#local-dev).
 

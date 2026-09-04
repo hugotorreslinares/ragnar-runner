@@ -29,6 +29,23 @@ export const PALETTE = {
   textDim: "#e9e4d6",
 };
 
+// Stand-in scenery, painted when a background photo is missing or failed.
+// Blocky and far away on purpose — it reads as "a city is back there" without
+// competing with the obstacles the player has to see.
+//
+// The canvas width and ground line are passed in rather than imported: this
+// file is part of the game pack, and the pack is what js/config.js is built
+// from, so importing that back would close a cycle.
+export function drawFallbackScenery(scrollX, width, groundY) {
+  ctx.fillStyle = PALETTE.fallbackBuildings;
+  const farOffset = -(scrollX * 0.15) % 260;
+  for (let x = farOffset - 260; x < width + 260; x += 260) {
+    ctx.fillRect(x + 20, 140, 90, groundY - 140);
+    ctx.fillRect(x + 130, 170, 70, groundY - 170);
+    ctx.fillRect(x + 210, 120, 50, groundY - 120);
+  }
+}
+
 // The collectible. Named `star` in the engine because that is the role, not
 // the picture: another game can draw a banana or a skate wheel here as long
 // as it fills the same radius.

@@ -13,6 +13,7 @@ import {
   drawStar,
   drawDebrisPiece,
   drawFallbackRunner,
+  drawFallbackScenery,
 } from "./art.js";
 
 export const GAME = {
@@ -100,6 +101,7 @@ export const GAME = {
     star: drawStar,
     debrisPiece: drawDebrisPiece,
     fallbackRunner: drawFallbackRunner,
+    fallbackScenery: drawFallbackScenery,
   },
 
   audio: {
