@@ -20,10 +20,20 @@ On touch devices, on-screen buttons appear automatically.
 
 Vanilla HTML/CSS/JS, no build step, no dependencies — just ES modules loaded natively by the browser.
 
+The code is split in two: an **engine** that knows about running, jumping and colliding, and a **game pack** that knows it is set in Bogotá. The engine never names a sprite, a sound, a colour or a line of copy — it reads all of that from the active game.
+
 ```
 index.html          markup only
 css/style.css        all styles
-js/config.js          default constants (physics, star tiers, thresholds)
+
+—— the game ——
+js/active-game.js      which game the engine runs — the one line you change
+js/games/bogota/index.js       the content pack: art, copy, audio, scenery, feel
+js/games/bogota/art.js         collectible, debris, stand-in runner, road colours
+js/games/bogota/obstacles/     this game's obstacle table + one draw module per type
+
+—— the engine ——
+js/config.js          the engine's view of the active game (stable constant names)
 js/tuning.js          the live-tunable subset of those (TUNE) — what gameplay code reads
 js/admin.js           the ?admin tuning panel; does nothing without the URL param
 js/dom.js             DOM element references — the only file that queries the DOM by id
@@ -33,7 +43,7 @@ js/leaderboard.js      Supabase fetch/submit/render + the submit-score UI flow
 js/input.js            keyboard/touch capture (no game-flow knowledge)
 js/state.js            game phase, the mutable per-run state object (G), resetGame()
 js/entities.js         spawning/catching/colliding with obstacles, stars, debris
-js/obstacles/          one draw module per obstacle type + the OBSTACLE_TYPES registry
+js/obstacles/index.js  which type spawns, when, and how one is drawn (no type names)
 js/obstacles/sprite.js image-backed obstacles (a picture instead of a draw function)
 js/render.js           all canvas drawing
 js/game.js             the update/draw loop + start/pause/end flow
@@ -41,6 +51,18 @@ js/main.js             wires DOM events to the modules above, starts the loop
 js/theme.js            picks the seasonal interface theme from the current month
 js/seasonal.js         the canvas side of that theme (wash, moon/bats, hearts, snow)
 ```
+
+## Making a different game
+
+A gorilla in the jungle or a skater downtown is the same engine with a different pack:
+
+1. Copy `js/games/bogota/` to `js/games/<yourgame>/`.
+2. Point `js/active-game.js` at it.
+3. Replace the assets it names (spritesheet, backgrounds, audio, hero shots) and the obstacle table. An obstacle can be a picture — `image:` plus a hitbox — so a new set does not mean writing canvas code.
+4. Give it its own `storagePrefix` so the two games don't share saved best scores, and its own leaderboard table.
+5. Edit the copy in `index.html`, the palette in `css/style.css`, and `manifest.json`. Those are the shell, not something the engine reads.
+
+Nothing under `js/` outside `js/games/` should need to change. If it does, that is a leak worth fixing rather than working around.
 
 Because it uses real `import`/`export` (not just several `<script>` tags sharing global scope), each file only sees what it explicitly imports — no accidental cross-file variable collisions. The trade-off: **ES modules require a local server**, they won't load over `file://`. See [Local dev](#local-dev).
 

@@ -1,7 +1,7 @@
 // Large wheeled dumpster: paneled body, reflective side stripes, hinged lid.
-import { ctx } from "../dom.js";
-import { GROUND_Y } from "../config.js";
-import { groundShadow } from "./utils.js";
+import { ctx } from "../../../dom.js";
+import { GROUND_Y } from "../../../config.js";
+import { groundShadow } from "../../../obstacles/utils.js";
 
 export function drawDumpster(x, w, h) {
   const top = GROUND_Y - h;

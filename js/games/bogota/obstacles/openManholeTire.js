@@ -1,6 +1,6 @@
-import { ctx } from "../dom.js";
-import { GROUND_Y } from "../config.js";
-import { groundShadow } from "./utils.js";
+import { ctx } from "../../../dom.js";
+import { GROUND_Y } from "../../../config.js";
+import { groundShadow } from "../../../obstacles/utils.js";
 
 export function drawOpenManholeTire(x, w, h) {
   const top = GROUND_Y - h;

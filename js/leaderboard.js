@@ -4,8 +4,9 @@
 // policy (which allows any row shape).
 import { lbNameInput, lbSubmitBtn, lbOverList, lbStartList } from './dom.js';
 
-const SUPABASE_URL = 'https://czwpovbmwstjlgemzxsp.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_iewfgpWVKtjY57SFKrD9hQ_GYRb2AKo';
+import { GAME } from './active-game.js';
+
+const { url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY, table: TABLE } = GAME.leaderboard;
 
 function lbHeaders(extra){
   return Object.assign({
@@ -16,7 +17,7 @@ function lbHeaders(extra){
 
 async function fetchLeaderboard(limit){
   const res = await fetch(
-    SUPABASE_URL + '/rest/v1/scores?select=player_name,score&order=score.desc&limit=' + limit,
+    SUPABASE_URL + '/rest/v1/' + TABLE + '?select=player_name,score&order=score.desc&limit=' + limit,
     { headers: lbHeaders() }
   );
   if (!res.ok) throw new Error('leaderboard fetch failed: ' + res.status);
@@ -24,7 +25,7 @@ async function fetchLeaderboard(limit){
 }
 
 export async function submitScoreToLeaderboard(name, score){
-  const res = await fetch(SUPABASE_URL + '/rest/v1/scores', {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + TABLE, {
     method: 'POST',
     headers: lbHeaders({ 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }),
     body: JSON.stringify({ player_name: name, score: score }),
@@ -73,7 +74,7 @@ export async function handleSubmitScore(score){
   if (!name) name = 'ANON';
   name = name.slice(0, 12);
   lbNameInput.value = name;
-  try { localStorage.setItem('ragnarName', name); } catch(e){}
+  try { localStorage.setItem(GAME.storagePrefix + 'Name', name); } catch(e){}
 
   scoreSubmitted = true;
   lbSubmitBtn.disabled = true;

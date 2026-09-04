@@ -2,13 +2,14 @@
 // flow control (start/end/pause). This is the one module that ties
 // input + entities + render + state together each frame.
 import { W, H, scoreVal, startOverlay, overOverlay, pauseOverlay, overText, lbOverList } from './dom.js';
-import { GROUND_Y, SHEET, FRAME_ASPECT } from './config.js';
+import { GROUND_Y, SHEET, FRAME_ASPECT, PLAYER_DRAW_HEIGHT } from './config.js';
 import { TUNE, jumpTotalFrames } from './tuning.js';
 import { G, PHASE, phase, setPhase, resetGame, updateSpeedUI, BEST, setBest } from './state.js';
 import { keys, hasQueuedJump, clearQueuedJump, clearInput } from './input.js';
 import { spawnObstacle, spawnStar, collectStar, launchDebris, launchGlass, hitPlayer, starBobPhase } from './entities.js';
 import { draw } from './render.js';
 import { OBSTACLE_TYPES } from './obstacles/index.js';
+import { GAME } from './active-game.js';
 import { loadLeaderboardInto, resetSubmitUI } from './leaderboard.js';
 import { startMusic, stopMusic, pauseMusic, resumeMusic, playHit } from './audio.js';
 
@@ -106,7 +107,7 @@ function update(dt){
   G.starPopups = G.starPopups.filter(p => p.t > 0);
 
   // collision
-  const pDrawH = 150;
+  const pDrawH = PLAYER_DRAW_HEIGHT;
   const pDrawW = pDrawH / FRAME_ASPECT;
   const pFeetY = GROUND_Y + G.player.y;
   const pTopY = pFeetY - pDrawH;
@@ -209,9 +210,9 @@ export function endGame(){
   G.player.invuln = 0;
   if (G.score > BEST){
     setBest(G.score);
-    overText.textContent = 'New best! ' + G.score + ' meters away from  the center of Bogotá.';
+    overText.textContent = GAME.copy.newBest(G.score);
   } else {
-    overText.textContent = 'You made ' + G.score + ' Bogotá got you. Too many obstacles Too many potholes And definitely too many bollards.';
+    overText.textContent = GAME.copy.gameOver(G.score);
   }
   overOverlay.classList.remove('hidden');
   resetSubmitUI();

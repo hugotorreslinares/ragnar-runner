@@ -1,7 +1,7 @@
 // Plain rounded barrel with a single reflective band.
-import { ctx } from "../dom.js";
-import { GROUND_Y } from "../config.js";
-import { roundRect } from "./utils.js";
+import { ctx } from "../../../dom.js";
+import { GROUND_Y } from "../../../config.js";
+import { roundRect } from "../../../obstacles/utils.js";
 
 export function drawBarrel(x, w, h) {
   const top = GROUND_Y - h;

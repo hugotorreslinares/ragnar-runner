@@ -1,9 +1,9 @@
 // Sleeping figure on flattened cardboard under blankets — a low, wide
 // obstacle. Being low is what keeps it fair despite being the widest hitbox
 // in the game (see the sizing note in OBSTACLE_TYPES).
-import { ctx } from "../dom.js";
-import { GROUND_Y } from "../config.js";
-import { groundShadow } from "./utils.js";
+import { ctx } from "../../../dom.js";
+import { GROUND_Y } from "../../../config.js";
+import { groundShadow } from "../../../obstacles/utils.js";
 
 export function drawSleepingPerson(x, w, h) {
   ctx.save();

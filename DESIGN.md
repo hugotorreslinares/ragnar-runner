@@ -113,6 +113,21 @@ Every external asset/network dependency (spritesheet, both background images, le
 
 **Restarting is click-only from game over.** The ready screen starts on Space/Enter/ArrowUp, the game-over screen does not — only the TRY AGAIN button restarts from there. On that screen the run's score is sitting unsubmitted beside the name field, and the same Space that meant "jump" for the whole run would discard it before it was ever saved; a player reported losing good scores exactly this way. The canvas `pointerdown` handler leaves game over out for the same reason. Don't add a keyboard shortcut back to `startGame()` from `PHASE.OVER` — see `js/main.js`.
 
+## Engine vs. game pack
+
+The code is in two halves. The **engine** — everything directly under `js/` — knows about running, jumping, spawning, colliding, scoring and drawing a scene. The **game pack** — `js/games/<id>/` — knows that this particular game is set in Bogotá: the spritesheet, the scenery photos, the obstacle table, the collectible's shape, the road's colours, the audio files, the game-over copy, the numbers that set how it feels. `js/active-game.js` picks which pack is live, and is deliberately one line.
+
+The rule that keeps it honest, and the one to enforce in review: **the engine imports the game, never the reverse.** No file under `js/` outside `js/games/` may name a sprite, a sound, a colour, or a line of copy. `js/config.js` is the seam — it re-exports `GAME`'s values under the stable names the engine already used (`GROUND_Y`, `SHEET`, `BACKGROUNDS`, …), which is why the split cost almost no churn in the modules that consume them.
+
+Two places deserve their own note:
+
+- **The obstacle registry split in half.** `js/obstacles/index.js` kept the mechanics — the weighted draw, the `everyPoints` schedule, `drawObstacle`, `panelRect` — and now reads whatever table the active game supplies. The table itself, with its per-type tuning comments and measured jump windows, moved to `js/games/bogota/obstacles/`. The mechanics never enumerate type names, so a game with vines and skate rails reuses them untouched.
+- **`render.js` kept the scene, not the art.** It still decides what is drawn, where, and in what order; the collectible, the debris pieces, the vector stand-in runner and the road's palette come from `GAME.art`. The engine calls the collectible a "star" because that is its role — another game can draw a banana there as long as it fills the same radius.
+
+`storagePrefix` is worth care: it prefixes every `localStorage` key (best score, player name, mute). Bogotá's stays `"ragnar"` because that is what players' saved best scores are already filed under — renaming it would silently reset every existing player. A second game must pick a different one, or the two will overwrite each other on the same origin.
+
+What is *not* engine-driven, by choice: `index.html`'s copy, the CSS palette, `manifest.json`, and the service worker's cache name. Those are the shell around the canvas, they are edited by hand per game, and pushing them through a config object would buy nothing but indirection.
+
 ## Seasonal themes
 
 The interface reskins itself by month: September is *amor y amistad* (pinks over plum), October is Halloween (pumpkin orange over near-black purple), December is Navidad (gold over pine green). Every other month uses the default palette.

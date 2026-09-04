@@ -4,6 +4,8 @@
 // fine since we never need to.
 import { livesWrap, livesMiniWrap, starsVal, starsMini, speedVal, speedMini, scoreVal, bestVal } from './dom.js';
 import { TUNE } from './tuning.js';
+import { GAME } from './active-game.js';
+import { PLAYER_SCREEN_X } from './config.js';
 import { keys } from './input.js';
 
 export const PHASE = { READY: 'ready', PLAYING: 'playing', OVER: 'over', PAUSED: 'paused' };
@@ -21,18 +23,19 @@ export function rebuildLivesUI(){
 }
 
 export let BEST = 0;
-try { BEST = parseInt(localStorage.getItem('ragnarBest') || '0', 10) || 0; } catch (e) { BEST = 0; }
+const BEST_KEY = GAME.storagePrefix + 'Best';
+try { BEST = parseInt(localStorage.getItem(BEST_KEY) || '0', 10) || 0; } catch (e) { BEST = 0; }
 bestVal.textContent = BEST;
 
 export function setBest(v){
   BEST = v;
-  try { localStorage.setItem('ragnarBest', String(BEST)); } catch (e) {}
+  try { localStorage.setItem(BEST_KEY, String(BEST)); } catch (e) {}
   bestVal.textContent = BEST;
 }
 
 export const G = {
   player: {
-    screenX: 170,
+    screenX: PLAYER_SCREEN_X,
     y: 0,           // 0 = on ground, negative = height above ground
     vy: 0,
     facing: 1,      // 1 = right, -1 = left
@@ -47,7 +50,7 @@ export const G = {
   baseSpeed: 0, // real starting value is set by resetGame()
   curSpeed: 0,
   elapsed: 0,
-  lives: 3,
+  lives: GAME.startingLives,
   score: 0,
   shakeT: 0,
   hitFlash: 0, // 1 = just hit an obstacle, fades to 0
@@ -72,7 +75,7 @@ export function resetGame(){
   // obstacle even with perfect timing (reach = curSpeed * jump duration).
   G.curSpeed = TUNE.START_SPEED;
   G.elapsed = 0;
-  G.lives = 3;
+  G.lives = GAME.startingLives;
   G.score = 0;
   const p = G.player;
   p.y = 0; p.vy = 0; p.onGround = true; p.invuln = 0; p.facing = 1;

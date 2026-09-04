@@ -1,7 +1,7 @@
 // Red road-barrier crate: tapered body, reflective stripes, stubby feet.
-import { ctx } from "../dom.js";
-import { GROUND_Y } from "../config.js";
-import { groundShadow } from "./utils.js";
+import { ctx } from "../../../dom.js";
+import { GROUND_Y } from "../../../config.js";
+import { groundShadow } from "../../../obstacles/utils.js";
 
 export function drawCrate(x, w, h) {
   const top = GROUND_Y - h;

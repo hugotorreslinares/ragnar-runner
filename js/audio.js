@@ -10,18 +10,20 @@
 //
 // Nothing starts until startMusic()/playHit(), both reached from a real user
 // gesture (Start button/keypress). Browsers block audio without one.
-const MUSIC = 'audio/funky-sidewalk-loop';
-const HIT = 'audio/hit';
-const MUTE_KEY = 'ragnarMuted';
+import { GAME } from './active-game.js';
+
+const MUSIC = GAME.audio.music;
+const HIT = GAME.audio.hit;
+const MUTE_KEY = GAME.storagePrefix + 'Muted';
 
 // The track is a purpose-built 32.000 s loop: 120.00 BPM, exactly 16 bars.
 // This has to be stated rather than taken from buffer.duration, because
 // decoding adds codec padding — Vorbis decodes to 32.016 s here, and looping
 // on that would play 16ms of encoder tail before wrapping.
-const MUSIC_LOOP_SECONDS = 32;
+const MUSIC_LOOP_SECONDS = GAME.audio.musicLoopSeconds;
 
-const MUSIC_VOLUME = 0.45;
-const HIT_VOLUME = 0.7;
+const MUSIC_VOLUME = GAME.audio.musicVolume;
+const HIT_VOLUME = GAME.audio.hitVolume;
 
 // Two encodings of each clip — the browser fetches whichever it can decode,
 // never both. Ogg Vorbis is unsupported on older Safari/iOS; those get AAC.

@@ -15,6 +15,7 @@
 import { W, H, ctx } from "./dom.js";
 import { GROUND_Y } from "./config.js";
 import { activeTheme } from "./theme.js";
+import { GAME } from "./active-game.js";
 
 // Per-particle constants: phase offsets and speeds that keep the flock/field
 // from moving as one block. Generated once at load.
@@ -64,7 +65,7 @@ const GROUND_LINE = {
 };
 
 export function groundLineColor() {
-  return GROUND_LINE[activeTheme()] || "rgba(232,171,58,0.55)";
+  return GROUND_LINE[activeTheme()] || GAME.art.palette.groundLine;
 }
 
 function now() {

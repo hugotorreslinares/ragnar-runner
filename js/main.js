@@ -9,6 +9,7 @@ import { toggleMute, isMuted } from './audio.js';
 import './admin.js'; // no-op unless the URL has ?admin
 import './install.js'; // "Install app" button — no-op outside Chromium
 import { renderSeasonBadge } from './theme.js'; // the theme itself is applied from <head>
+import { GAME } from './active-game.js';
 
 // The service worker exists so Chromium considers the game installable (see
 // sw.js). Registration is deliberately late and failure-tolerant: nothing in
@@ -20,7 +21,7 @@ if ('serviceWorker' in navigator) {
 }
 
 try {
-  const savedName = localStorage.getItem('ragnarName');
+  const savedName = localStorage.getItem(GAME.storagePrefix + 'Name');
   if (savedName) lbNameInput.value = savedName;
 } catch (e) {}
 
@@ -76,19 +77,12 @@ function renderMuteBtn(){
 renderMuteBtn();
 muteBtn.addEventListener('click', () => { toggleMute(); renderMuteBtn(); });
 
-// Random Ragnar shot on the start screen. All three are 1024x1536 so they
-// sit identically under `background-size: auto` — the CSS scrolls the image
-// vertically at its native size, which means pixel dimensions ARE the zoom
-// level, and a differently-sized file would visibly change the framing.
-const ragnarImages = [
-  'images/ragnar aiming.webp',
-  'images/ragnar macdonalds.webp',
-  'images/ragnar-tmlenio.webp',
-];
-const ragnarPanel = document.querySelector('.initial-image');
-if (ragnarPanel){
-  const pick = ragnarImages[Math.floor(Math.random() * ragnarImages.length)];
-  ragnarPanel.style.backgroundImage = 'url("' + encodeURI(pick) + '")';
+// Random hero shot on the start screen — the game supplies the list (see
+// GAME.heroImages for why they all share one pixel size).
+const heroPanel = document.querySelector('.initial-image');
+if (heroPanel && GAME.heroImages.length){
+  const pick = GAME.heroImages[Math.floor(Math.random() * GAME.heroImages.length)];
+  heroPanel.style.backgroundImage = 'url("' + encodeURI(pick) + '")';
 }
 
 requestAnimationFrame(loop);

@@ -1,9 +1,9 @@
 // Armored cash-in-transit van — a Bogotá street fixture. Drawn in side
 // profile with the cab facing left (toward the oncoming player): low cab up
 // front, tall armored cargo box behind it, slit windows, reflective stripe.
-import { ctx } from "../dom.js";
-import { GROUND_Y } from "../config.js";
-import { groundShadow, roundRect } from "./utils.js";
+import { ctx } from "../../../dom.js";
+import { GROUND_Y } from "../../../config.js";
+import { groundShadow, roundRect } from "../../../obstacles/utils.js";
 
 export function drawArmoredVan(x, w, h) {
   const top = GROUND_Y - h;

@@ -1,7 +1,7 @@
 // Perforated metal recycling bin on a frame, with lid and side supports.
-import { ctx } from "../dom.js";
-import { GROUND_Y } from "../config.js";
-import { groundShadow } from "./utils.js";
+import { ctx } from "../../../dom.js";
+import { GROUND_Y } from "../../../config.js";
+import { groundShadow } from "../../../obstacles/utils.js";
 
 export function drawTrashcan(x, w, h) {
   const top = GROUND_Y - h;
