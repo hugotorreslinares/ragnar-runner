@@ -66,8 +66,10 @@ async function load(base){
 // that can be warmed ahead of time. It runs from an idle callback after
 // window load so ~340KB of music never competes with first paint.
 function warm(){
-  fetch(url(MUSIC)).catch(() => {});
-  fetch(url(HIT)).catch(() => {});
+  // asset(), like the real load below — without it these resolve against the
+  // page, which 404s on any page that is not at the project root.
+  fetch(asset(url(MUSIC))).catch(() => {});
+  fetch(asset(url(HIT))).catch(() => {});
 }
 function queueWarm(){
   if (window.requestIdleCallback) requestIdleCallback(warm, { timeout: 3000 });
