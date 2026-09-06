@@ -11,6 +11,7 @@ import './install.js'; // "Install app" button — no-op outside Chromium
 import { renderSeasonBadge } from './theme.js'; // the theme itself is applied from <head>
 import { GAME } from './active-game.js';
 import { loadStrings, applyStrings, t } from './strings.js';
+import { asset } from './paths.js';
 
 // Copy first: the markup ships with empty elements carrying data-text keys,
 // so nothing readable is on screen until this resolves. Top-level await in a
@@ -36,7 +37,7 @@ try {
 // the game depends on it, and a browser without support just skips it.
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.register(asset('sw.js')).catch(() => {});
   });
 }
 
@@ -102,7 +103,7 @@ muteBtn.addEventListener('click', () => { toggleMute(); renderMuteBtn(); });
 const heroPanel = document.querySelector('.initial-image');
 if (heroPanel && GAME.heroImages.length){
   const pick = GAME.heroImages[Math.floor(Math.random() * GAME.heroImages.length)];
-  heroPanel.style.backgroundImage = 'url("' + encodeURI(pick) + '")';
+  heroPanel.style.backgroundImage = 'url("' + encodeURI(asset(pick)) + '")';
 }
 
 requestAnimationFrame(loop);

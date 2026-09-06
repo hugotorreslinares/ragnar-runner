@@ -1,0 +1,32 @@
+{
+  "name": "Kong Run",
+  "short_name": "Kong Run",
+  "description": "A free browser runner set in a burning jungle. Vault fallen logs, clear boulders, grab bananas.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#22301a",
+  "theme_color": "#f2c14e",
+  "lang": "en",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "../images/jungle/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "../images/jungle/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "../images/jungle/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

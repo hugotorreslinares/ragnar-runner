@@ -7,11 +7,12 @@
 // also means the file can be edited on a deployed site without a rebuild
 // (there is no build step to begin with).
 import { GAME } from './active-game.js';
+import { asset } from './paths.js';
 
 let STRINGS = null;
 
 export async function loadStrings() {
-  const res = await fetch(GAME.strings, { cache: 'no-cache' });
+  const res = await fetch(asset(GAME.strings), { cache: 'no-cache' });
   if (!res.ok) throw new Error('strings fetch failed: ' + res.status + ' ' + GAME.strings);
   STRINGS = await res.json();
 }

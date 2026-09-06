@@ -88,7 +88,10 @@ export function drawDebrisPiece(d) {
 export function drawFallbackRunner(feetY, topY, drawH, drawW, phase) {
   const cx = 0;
   const legSwing = Math.sin(phase) * drawW * 0.3;
-  const armSwing = Math.sin(phase + Math.PI) * drawW * 0.34;
+  // Kept under the shoulder offset below (0.2), so a swinging arm never
+  // crosses the centreline — at a wider amplitude the two arms trade sides
+  // and the silhouette reads as an X rather than an ape.
+  const armSwing = Math.sin(phase + Math.PI) * drawW * 0.16;
   const hipY = topY + drawH * 0.68;
   const shoulderY = topY + drawH * 0.3;
   const headR = drawH * 0.12;
@@ -98,8 +101,9 @@ export function drawFallbackRunner(feetY, topY, drawH, drawW, phase) {
   ctx.lineWidth = Math.max(4, drawW * 0.13);
 
   // Legs — short and wide apart, which is most of what makes a silhouette
-  // read as an ape rather than a person.
-  ctx.strokeStyle = "#2b2320";
+  // read as an ape rather than a person. Darkest of the three tones, so the
+  // stack reads back-to-front: legs, torso, arms.
+  ctx.strokeStyle = "#241d1a";
   ctx.beginPath();
   ctx.moveTo(cx, hipY);
   ctx.lineTo(cx - legSwing, feetY);
@@ -118,8 +122,10 @@ export function drawFallbackRunner(feetY, topY, drawH, drawW, phase) {
   ctx.quadraticCurveTo(cx, shoulderY - drawH * 0.08, cx - drawW * 0.26, shoulderY);
   ctx.fill();
 
-  // Arms, long enough to reach past the hips.
-  ctx.strokeStyle = "#3a2f2a";
+  // Arms, long enough to reach past the hips. A shade lighter than the torso
+  // on purpose: at the same tone the silhouette loses them entirely, which is
+  // most visible once it is shrunk to an app icon.
+  ctx.strokeStyle = "#5a483e";
   ctx.beginPath();
   ctx.moveTo(cx - drawW * 0.18, shoulderY + drawH * 0.04);
   ctx.lineTo(cx - drawW * 0.2 - armSwing, hipY + drawH * 0.12);

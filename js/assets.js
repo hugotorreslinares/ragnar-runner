@@ -3,13 +3,14 @@
 // render.js rather than awaited, so a slow or blocked asset degrades the
 // visuals instead of blocking the game.
 import { SHEET, BACKGROUNDS } from './config.js';
+import { asset } from './paths.js';
 
 export const sheetImg = new Image();
 export let allLoaded = false;
 export let useFallbackArt = false;
 sheetImg.onload = () => { allLoaded = true; };
 sheetImg.onerror = () => { useFallbackArt = true; allLoaded = true; };
-sheetImg.src = SHEET.src;
+sheetImg.src = asset(SHEET.src);
 // Safety net: never let a stalled/blocked image load freeze the game.
 setTimeout(() => {
   if (!allLoaded){ useFallbackArt = true; allLoaded = true; }
@@ -34,7 +35,7 @@ export function requestBackground(entry){
   entry.requested = true;
   entry.img.onload = () => { entry.loaded = true; };
   entry.img.onerror = () => { entry.failed = true; };
-  entry.img.src = entry.def.src;
+  entry.img.src = asset(entry.def.src);
 }
 
 // Every run starts on the first one — unless the game ships none, which is

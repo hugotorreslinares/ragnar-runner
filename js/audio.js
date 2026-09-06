@@ -11,6 +11,7 @@
 // Nothing starts until startMusic()/playHit(), both reached from a real user
 // gesture (Start button/keypress). Browsers block audio without one.
 import { GAME } from './active-game.js';
+import { asset } from './paths.js';
 
 const MUSIC = GAME.audio.music;
 const HIT = GAME.audio.hit;
@@ -56,7 +57,7 @@ function audio(){
 async function load(base){
   const c = audio();
   if (!c) return null;
-  const res = await fetch(url(base));
+  const res = await fetch(asset(url(base)));
   if (!res.ok) throw new Error('audio fetch failed: ' + res.status);
   return await c.decodeAudioData(await res.arrayBuffer());
 }

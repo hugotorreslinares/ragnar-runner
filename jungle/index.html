@@ -1,68 +1,64 @@
 <!doctype html>
-<html lang="en" data-game="bogota">
+<html lang="en" data-game="jungle">
   <head>
     <meta charset="UTF-8" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"
     />
-    <title>Escape from Bogotá — Endless Runner Game</title>
+    <title>Kong Run — Endless Runner Game</title>
     <meta
       name="description"
-      content="Escape from Bogotá: a fast, free browser runner. Dodge bollards and potholes, catch stars, and climb the global leaderboard. No install, play instantly."
+      content="Kong Run: a free browser runner set in a burning jungle. Vault fallen logs, clear boulders, grab bananas. No install, play instantly."
     />
     <meta name="author" content="Hugo Torres" />
     <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://escape-bogota.vercel.app/" />
+    <link rel="canonical" href="https://escape-bogota.vercel.app/jungle/" />
 
     <!-- Open Graph / Facebook, WhatsApp, etc. -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://escape-bogota.vercel.app/" />
-    <meta property="og:title" content="Escape from Bogotá — Endless Runner Game" />
+    <meta property="og:url" content="https://escape-bogota.vercel.app/jungle/" />
+    <meta property="og:title" content="Kong Run — Endless Runner Game" />
     <meta
       property="og:description"
-      content="Dodge bollards and potholes, catch stars, and climb the global leaderboard. Free, instant, no install."
+      content="Vault fallen logs, clear boulders, grab bananas. Free, instant, no install."
     />
-    <meta property="og:image" content="https://escape-bogota.vercel.app/images/og-image.jpg" />
+    <meta property="og:image" content="https://escape-bogota.vercel.app/images/jungle/og-image.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:locale" content="es_CO" />
+    <meta property="og:locale" content="en_US" />
 
     <!-- Twitter/X card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Escape from Bogotá — Endless Runner Game" />
+    <meta name="twitter:title" content="Kong Run — Endless Runner Game" />
     <meta
       name="twitter:description"
-      content="Dodge bollards and potholes, catch stars, and climb the global leaderboard."
+      content="Vault fallen logs, clear boulders, grab bananas."
     />
-    <meta name="twitter:image" content="https://escape-bogota.vercel.app/images/og-image.jpg" />
+    <meta name="twitter:image" content="https://escape-bogota.vercel.app/images/jungle/og-image.jpg" />
 
-    <meta name="theme-color" content="#e8ab3a" />
+    <meta name="theme-color" content="#f2c14e" />
 
     <!-- Favicons -->
-    <link rel="icon" href="favicon.ico" sizes="any" />
-    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="../images/jungle/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="../images/jungle/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../images/jungle/apple-touch-icon.png" />
 
     <link rel="manifest" href="manifest.json" />
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="../css/style.css" />
     <!-- Stamps data-theme on <html> from the current month. Loaded here, next
          to the stylesheet, so the seasonal palette is in place before the
          first paint instead of flashing the default one. -->
-    <script type="module" src="js/theme.js"></script>
+    <script type="module" src="../js/theme.js"></script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "VideoGame",
-        "name": "Escape from Bogotá",
-        "url": "https://escape-bogota.vercel.app/",
-        "image": "https://escape-bogota.vercel.app/images/og-image.jpg",
-        "description": "A fast, free browser runner. Dodge bollards and potholes, catch stars, and climb the global leaderboard.",
-        "genre": "Endless Runner",
-        "gamePlatform": "Web Browser",
+        "name": "Kong Run",
+        "url": "https://escape-bogota.vercel.app/jungle/",
+        "image": "https://escape-bogota.vercel.app/images/jungle/og-image.jpg",
         "applicationCategory": "Game",
-        "author": { "@type": "Person", "name": "Hugo Torres" },
+        "operatingSystem": "Any",
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
       }
     </script>
@@ -178,7 +174,7 @@
           <div style="display: grid; grid-template-columns: 30% 60%">
             <div class="ragnar-failed-container">
               <img
-                src="images/ragnar-defeated.webp"
+                src="../images/jungle/kong-defeated.png"
                 alt="Ragnar aiming"
                 id="ragnarFailed"
                 height="120px"
@@ -234,7 +230,7 @@
       <div id="footer-note" data-text="footer"></div>
     </div>
 
-    <script type="module" src="js/main.js"></script>
+    <script type="module" src="../js/main.js"></script>
 
     <!-- Vercel Web Analytics (page views). Inert anywhere but a Vercel
          deployment with Analytics enabled for the project: the script path

@@ -8,6 +8,7 @@
 // close to mattering.
 import { ctx } from "../dom.js";
 import { GROUND_Y } from "../config.js";
+import { asset } from "../paths.js";
 
 const cache = new Map();
 
@@ -17,7 +18,7 @@ export function loadSprite(src) {
   entry = { img: new Image(), ready: false, failed: false };
   entry.img.onload = () => { entry.ready = true; };
   entry.img.onerror = () => { entry.failed = true; };
-  entry.img.src = src;
+  entry.img.src = asset(src);
   cache.set(src, entry);
   return entry;
 }

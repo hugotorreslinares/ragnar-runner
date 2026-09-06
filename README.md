@@ -77,7 +77,14 @@ Nothing under `js/` outside `js/games/` should need to change. If it does, that 
 
 ### The jungle skeleton
 
-`js/games/jungle/` is a working second game — a gorilla running under a burning canopy — and exists to keep the split honest: it runs on the engine with no engine changes at all. Point `js/active-game.js` at it to play it.
+It is live at **`/jungle/`** — `https://escape-bogota.vercel.app/jungle/`, or `https://hugotorreslinares.github.io/ragnar-runner/jungle/` on Pages.
+
+A page says which game it is with an attribute on the root element (`<html data-game="jungle">`), and `js/active-game.js` reads it. Both packs are imported statically — a few KB of code each, no assets — so `GAME` stays synchronous and nothing downstream has to await it. A page with no attribute, or an unknown one, gets Bogotá.
+
+`jungle/index.html` is its own page rather than a query parameter on the first one, because a share preview needs its own `<title>`, description and `og:image`, and a static host serves the same file for every query string. Its `<body>` is a copy of the root page's — **markup changes have to be mirrored**, but wording never does: all copy comes from each pack's `strings.json`.
+
+
+`js/games/jungle/` is a working second game — a gorilla running under a burning canopy — and exists to keep the split honest: it runs on the engine with no engine changes at all.
 
 It ships **no image and no audio files**. The runner, the canopy, the collectible and all three obstacles are drawn in code, so it is playable before any art exists and each asset can be swapped in one at a time:
 
