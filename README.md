@@ -2,9 +2,16 @@
 
 An HTML5 side-scrolling runner built around the **Ragnar "El Coleccionista"** run-cycle spritesheet from [Taller de la Mancha](https://tallerdelamancha.com).
 
-Play it at [escape-bogota.vercel.app](https://escape-bogota.vercel.app/).
+Two games run on it:
 
-The same repo also runs as-is on GitHub Pages (Settings → Pages → *Deploy from a branch* → `main` / `/ (root)`), at `https://hugotorreslinares.github.io/ragnar-runner/`. No build step and nothing to configure: every path in the project is relative, and the manifest's `start_url`/`scope` are `"./"`, so the game works under the `/ragnar-runner/` subpath a project site is served from. The empty `.nojekyll` file keeps Pages from running the site through Jekyll, which would drop any file or folder whose name starts with `_`. Note the two deployments share one Supabase leaderboard but have separate `localStorage`, so a personal best does not follow the player between them.
+| Game | Play | Pack |
+|---|---|---|
+| **Escape from Bogotá** | [escape-bogota.vercel.app](https://escape-bogota.vercel.app/) | `js/games/bogota/` |
+| **Kong Run** (skeleton) | [/jungle/](https://escape-bogota.vercel.app/jungle/) | `js/games/jungle/` |
+
+They share every line of engine code and differ only in their pack — see [Making a different game](#making-a-different-game).
+
+The same repo also runs as-is on GitHub Pages (Settings → Pages → *Deploy from a branch* → `main` / `/ (root)`), at `https://hugotorreslinares.github.io/ragnar-runner/`. No build step and nothing to configure: the manifest's `start_url`/`scope` are `"./"`, and every asset a game names is resolved through `asset()` (`js/paths.js`) against the project root rather than the current page — so both the `/ragnar-runner/` subpath a project site is served from and the `/jungle/` page work without special-casing either. The empty `.nojekyll` file keeps Pages from running the site through Jekyll, which would drop any file or folder whose name starts with `_`. Note the two deployments share one Supabase leaderboard but have separate `localStorage`, so a personal best does not follow the player between them.
 
 ## Controls
 
@@ -12,7 +19,7 @@ The same repo also runs as-is on GitHub Pages (Settings → Pages → *Deploy fr
 |---|---|
 | `→` | Run / speed up |
 | `←` | Slow down / retreat |
-| `↑` or `Space` | Jump over crates & barrels |
+| `↑` or `Space` | Jump over whatever is in the way |
 
 On touch devices, on-screen buttons appear automatically.
 
@@ -97,6 +104,14 @@ Its physics and obstacle sizes are copied from Bogotá on purpose. Those numbers
 
 Because it uses real `import`/`export` (not just several `<script>` tags sharing global scope), each file only sees what it explicitly imports — no accidental cross-file variable collisions. The trade-off: **ES modules require a local server**, they won't load over `file://`. See [Local dev](#local-dev).
 
+### Where the jungle artwork came from
+
+Its icons, favicons, game-over portrait and social preview were not drawn by hand — they are rendered from the pack's own drawing code, so the app icon is literally the same gorilla that runs on screen. The method, if it needs redoing after an art change: serve the site locally, open `/jungle/`, and from the console draw onto the game canvas with the functions in `js/games/jungle/art.js`, then copy the region out into an offscreen canvas at each target size and save it.
+
+Two things worth knowing before repeating it. Remove `data-theme` from `<html>` first, or the seasonal overlay bakes that month's hearts or snow into the image. And the render loop only runs while the page is visible, so compose the scene by setting `G` directly and calling `draw()` once rather than waiting for frames.
+
+The favicons are a banana rather than the gorilla: at 16px an ape silhouette is a smudge, while a single high-contrast shape still reads.
+
 ## How it works
 
 - **Background**: `sprites/background.webp`, a single (non-tileable) city photo. It's aligned so the sidewalk/curb line in the image lands exactly on the game's ground line, and it's tiled infinitely by mirroring every other repeat — the shared edge always matches itself exactly, so there's no visible seam. The trade-off: on mirrored repeats, the "TALLER" signage reads backwards. It scrolls at 55% of world speed for a parallax depth effect. The scenery changes as the run goes on — a second city photo past 4000 and a sunset (`sprites/background-sunset.webp`) past 5000 — all using the same trick; the stages are listed in `BACKGROUNDS` (`js/config.js`) and loaded on demand rather than up front.
@@ -130,4 +145,6 @@ ES modules need to be served over HTTP — opening `index.html` directly via `fi
 python3 -m http.server 8080
 ```
 
-Then open `http://localhost:8080`.
+Then open `http://localhost:8080` for Bogotá, or `http://localhost:8080/jungle/` for Kong Run.
+
+One gotcha worth the trouble it saves: `http.server` sends no cache headers, so the browser will happily keep serving a module you just edited and you end up debugging a change that never loaded. If an edit seems to have no effect, hard-reload before suspecting the code — or serve with `Cache-Control: no-store` and skip the problem entirely.
