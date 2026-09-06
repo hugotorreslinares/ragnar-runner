@@ -40,6 +40,7 @@ js/games/bogota/art.js         collectible, debris, stand-in runner, road colour
 js/games/bogota/strings.json   every word the game shows — change text here, only here
 js/games/bogota/obstacles/     this game's obstacle table + one draw module per type
 js/games/jungle/               a second game (skeleton) on the same engine — see below
+supabase/leaderboard.sql       the leaderboard tables, for reference and rebuilds
 
 —— the engine ——
 js/config.js          the engine's view of the active game (stable constant names)
@@ -77,7 +78,7 @@ A gorilla in the jungle or a skater downtown is the same engine with a different
 1. Copy `js/games/bogota/` to `js/games/<yourgame>/`.
 2. Point `js/active-game.js` at it.
 3. Replace the assets it names (spritesheet, backgrounds, audio, hero shots), the obstacle table, and `strings.json`. An obstacle can be a picture — `image:` plus a hitbox — so a new set does not mean writing canvas code.
-4. Give it its own `storagePrefix` so the two games don't share saved best scores, and its own leaderboard table.
+4. Give it its own `storagePrefix` so the two games don't share saved best scores, and its own leaderboard table — one table per game, see `supabase/leaderboard.sql`.
 5. Edit the palette in `css/style.css`, the head metadata in `index.html`, and `manifest.json`. Those are the shell, not something the engine reads.
 
 Nothing under `js/` outside `js/games/` should need to change. If it does, that is a leak worth fixing rather than working around.

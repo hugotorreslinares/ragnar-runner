@@ -32,7 +32,7 @@ Guidance for AI coding agents (Claude, Copilot, Codex, etc.) working in this rep
 ## Leaderboard / Supabase
 
 - The Supabase URL and anon/publishable key in `js/leaderboard.js` are meant to be public (client-side) — not a leaked secret. Don't "fix" this by hiding them.
-- Data integrity comes from the `scores` table's own CHECK constraints (score range, name length), not from the RLS insert policy (which permits any row shape) or key secrecy. Don't rely on RLS alone if adding new submitted fields — add a matching CHECK constraint.
+- Data integrity comes from each leaderboard table's own CHECK constraints (score range, name length), not from the RLS insert policy (which permits any row shape) or key secrecy. Don't rely on RLS alone if adding new submitted fields — add a matching CHECK constraint. Neither table has an update or delete policy, so the published key can add to a board but never edit or erase it; keep it that way. A new game gets its own table, mirrored into `supabase/leaderboard.sql`.
 - Never add other secret keys (service role keys, etc.) to this client-side code.
 - Always escape/coerce user- or API-supplied values before inserting them into `innerHTML` (see `escapeHtml` and the numeric coercion on `score` in `renderLeaderboard`).
 
