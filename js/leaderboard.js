@@ -16,13 +16,40 @@ function lbHeaders(extra){
   }, extra || {});
 }
 
+// One row per player, not per run. Every run is stored, so a regular ends up
+// occupying several of the top slots and the board reads as three people
+// playing instead of a competition — the top 20 was 11 players before this.
+//
+// Done here rather than in SQL because the fix would need a DISTINCT ON view,
+// and a view with DISTINCT ON is not insertable: the game would then need one
+// name to read from and another to write to, in every game pack. Overfetching
+// a few rows is cheaper than that.
+//
+// ponytail: a player with more than OVERFETCH x limit entries ahead of
+// everyone else could still crowd the board. Move it to a view if that ever
+// stops being hypothetical.
+const OVERFETCH = 10;
+const MAX_ROWS = 200;
+
 async function fetchLeaderboard(limit){
+  const rows = Math.min(limit * OVERFETCH, MAX_ROWS);
   const res = await fetch(
-    SUPABASE_URL + '/rest/v1/' + TABLE + '?select=player_name,score&order=score.desc&limit=' + limit,
+    SUPABASE_URL + '/rest/v1/' + TABLE + '?select=player_name,score&order=score.desc&limit=' + rows,
     { headers: lbHeaders() }
   );
   if (!res.ok) throw new Error('leaderboard fetch failed: ' + res.status);
-  return res.json();
+  return bestPerPlayer(await res.json(), limit);
+}
+
+// Rows arrive sorted by score descending, so the first time a name appears is
+// already that player's best run — no comparison needed.
+function bestPerPlayer(rows, limit){
+  const best = new Map();
+  for (const row of rows){
+    if (!best.has(row.player_name)) best.set(row.player_name, row);
+    if (best.size === limit) break;
+  }
+  return [...best.values()];
 }
 
 export async function submitScoreToLeaderboard(name, score){
