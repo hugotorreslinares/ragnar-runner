@@ -148,4 +148,12 @@ python3 -m http.server 8080
 
 Then open `http://localhost:8080` for Bogotá, or `http://localhost:8080/jungle/` for Kong Run.
 
+Before pushing, run the checks:
+
+```bash
+python3 check.py
+```
+
+It catches the failures that do not announce themselves: a `data-text` key that no longer exists (the element renders the key as visible text), the two packs' `strings.json` drifting apart, and `index.html` and `jungle/index.html` falling out of sync — they deliberately share a `<body>` and nothing enforces it at runtime. It runs on every push through `.github/workflows/check.yml` too.
+
 One gotcha worth the trouble it saves: `http.server` sends no cache headers, so the browser will happily keep serving a module you just edited and you end up debugging a change that never loaded. If an edit seems to have no effect, hard-reload before suspecting the code — or serve with `Cache-Control: no-store` and skip the problem entirely.

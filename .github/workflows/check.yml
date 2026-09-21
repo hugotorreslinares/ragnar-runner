@@ -1,0 +1,10 @@
+# Runs check.py on every push and pull request. The script needs nothing but
+# python3, which the runner already has, so there is no install step.
+name: checks
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 check.py
