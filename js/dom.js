@@ -19,6 +19,7 @@ export const overOverlay = document.getElementById('overOverlay');
 export const overText = document.getElementById('overText');
 export const startBtn = document.getElementById('startBtn');
 export const restartBtn = document.getElementById('restartBtn');
+export const shareBtn = document.getElementById('shareBtn');
 export const lbStartList = document.getElementById('lbStartList');
 export const lbOverList = document.getElementById('lbOverList');
 export const lbNameInput = document.getElementById('lbNameInput');

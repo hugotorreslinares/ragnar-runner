@@ -1,6 +1,6 @@
 // Bootstrap — wires DOM events to the game/leaderboard/input modules and
 // kicks off the render loop. Nothing here owns game logic itself.
-import { canvas, lbStartList, lbOverList, lbSubmitBtn, lbNameInput, startBtn, restartBtn, pauseBtn, resumeBtn, muteBtn, seasonBadge, isFormControlFocused } from './dom.js';
+import { canvas, lbStartList, lbOverList, lbSubmitBtn, lbNameInput, startBtn, restartBtn, shareBtn, pauseBtn, resumeBtn, muteBtn, seasonBadge, isFormControlFocused } from './dom.js';
 import { PHASE, phase, G } from './state.js';
 import { startGame, togglePause, loop } from './game.js';
 import { queueJump } from './input.js';
@@ -47,6 +47,44 @@ try {
 } catch (e) {}
 
 renderSeasonBadge(seasonBadge, t);
+
+// Share the run. navigator.share is the whole feature on mobile — it opens the
+// OS sheet, which is where links actually get shared — and the clipboard is
+// the desktop fallback. No library: both are native.
+//
+// The URL is rebuilt from origin + pathname rather than taken from
+// location.href so a forced ?theme= or any other debugging parameter is not
+// shared along with it.
+async function shareScore(){
+  const message = t('over.shareText', { score: G.score });
+  const url = location.origin + location.pathname;
+  try {
+    if (navigator.share){
+      await navigator.share({ title: document.title, text: message, url });
+      return;
+    }
+  } catch (err) {
+    // Dismissing the share sheet rejects too; that is a choice, not a failure.
+    if (err.name === 'AbortError') return;
+    // anything else: fall through and try the clipboard instead
+  }
+  try {
+    await navigator.clipboard.writeText(message + ' ' + url);
+    flashShareBtn('over.shareCopied');
+  } catch (err) {
+    console.error('share failed', err);
+    flashShareBtn('over.shareFailed');
+  }
+}
+
+let shareFlashT = null;
+function flashShareBtn(key){
+  shareBtn.textContent = t(key);
+  clearTimeout(shareFlashT);
+  shareFlashT = setTimeout(() => { shareBtn.textContent = t('over.shareButton'); }, 1800);
+}
+
+shareBtn.addEventListener('click', shareScore);
 
 startBtn.addEventListener('click', startGame);
 restartBtn.addEventListener('click', startGame);

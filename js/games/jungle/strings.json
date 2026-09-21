@@ -35,7 +35,11 @@
     "newBest": "New best! {score} metres deeper into the green.",
     "gameOver": "You made {score}. The jungle got you. Too many logs, too many boulders, and one termite mound too many.",
     "namePlaceholder": "YOUR NAME",
-    "restartButton": "TRY AGAIN"
+    "restartButton": "TRY AGAIN",
+    "shareButton": "↗ Share score",
+    "shareText": "I made {score} m in Kong Run. Think you can beat it?",
+    "shareCopied": "✓ Copied",
+    "shareFailed": "Couldn't share"
   },
 
   "pause": {

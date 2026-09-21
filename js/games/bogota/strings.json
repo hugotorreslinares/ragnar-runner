@@ -35,7 +35,11 @@
     "newBest": "New best! {score} meters away from the center of Bogotá.",
     "gameOver": "You made {score}. Bogotá got you. Too many obstacles. Too many potholes. And definitely too many bollards.",
     "namePlaceholder": "YOUR NAME",
-    "restartButton": "TRY AGAIN"
+    "restartButton": "TRY AGAIN",
+    "shareButton": "↗ Share score",
+    "shareText": "I made {score} m in Escape from Bogotá. Think you can beat it?",
+    "shareCopied": "✓ Copied",
+    "shareFailed": "Couldn't share"
   },
 
   "pause": {

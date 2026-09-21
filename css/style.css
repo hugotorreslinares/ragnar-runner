@@ -460,6 +460,31 @@ button.cta.small {
   flex-shrink: 0;
 }
 
+.over-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+/* Outlined, unfilled, no lift: a button that invites without pulling rank on
+   the primary CTA sitting next to it. */
+button.cta.ghost {
+  background: transparent;
+  color: var(--paper-dim);
+  border: 1px solid var(--paper-dim);
+  box-shadow: none;
+  font-weight: 400;
+}
+button.cta.ghost:hover {
+  color: var(--amber);
+  border-color: var(--amber);
+}
+button.cta.ghost:active {
+  transform: none;
+  box-shadow: none;
+}
+
 #touch {
   display: flex;
   gap: 10px;
