@@ -54,3 +54,27 @@ alter table public.jungle_scores enable row level security;
 
 create policy "public read"   on public.jungle_scores for select to anon using (true);
 create policy "public insert" on public.jungle_scores for insert to anon with check (true);
+
+-- ---------------------------------------------------------------------------
+-- Analytics (js/analytics.js)
+-- ---------------------------------------------------------------------------
+-- One row per finished run. Insert-only for the public key: NO select policy,
+-- so the published key can append a data point but never read the analytics
+-- back (reads happen through the service role / SQL). Non-personal: `visitor`
+-- is a random localStorage id, not an account or an IP.
+create table if not exists public.plays (
+  id          bigint generated always as identity primary key,
+  created_at  timestamptz not null default now(),
+  game        text        not null,
+  score       integer     not null,
+  run_index   integer     not null default 1,
+  visitor     text        not null,
+  constraint plays_game_len    check (char_length(game) between 1 and 20),
+  constraint plays_score_rng   check (score between 0 and 200000),
+  constraint plays_run_rng     check (run_index between 1 and 100000),
+  constraint plays_visitor_len check (char_length(visitor) between 1 and 40)
+);
+create index if not exists plays_created_idx on public.plays (created_at desc);
+create index if not exists plays_visitor_idx on public.plays (visitor);
+alter table public.plays enable row level security;
+create policy "public insert" on public.plays for insert to anon with check (true);

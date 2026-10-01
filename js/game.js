@@ -11,6 +11,7 @@ import { draw } from './render.js';
 import { OBSTACLE_TYPES } from './obstacles/index.js';
 import { t } from './strings.js';
 import { loadLeaderboardInto, resetSubmitUI } from './leaderboard.js';
+import { recordPlay } from './analytics.js';
 import { startMusic, stopMusic, pauseMusic, resumeMusic, playHit } from './audio.js';
 
 function update(dt){
@@ -199,6 +200,7 @@ export function startGame(){
 export function endGame(){
   setPhase(PHASE.OVER);
   stopMusic();
+  recordPlay(G.score); // measure the run (fire-and-forget)
   // update() is a no-op once phase leaves PLAYING, so any transient effect
   // still mid-flight (screen shake, the hit-flash red tint + "-1" text,
   // invulnerability flicker) would otherwise freeze at whatever value it

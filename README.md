@@ -59,6 +59,7 @@ js/obstacles/sprite.js image-backed obstacles (a picture instead of a draw funct
 js/render.js           all canvas drawing
 js/game.js             the update/draw loop + start/pause/end flow
 js/main.js             wires DOM events to the modules above, starts the loop
+js/analytics.js       records one row per finished run (retention measurement)
 js/theme.js            picks the seasonal interface theme from the current month
 js/seasonal.js         the canvas side of that theme (wash, moon/bats, hearts, snow)
 ```
